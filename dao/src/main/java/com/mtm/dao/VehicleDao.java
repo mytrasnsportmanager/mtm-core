@@ -1,7 +1,7 @@
 package com.mtm.dao;
 
 import com.mtm.beans.dto.Record;
-import com.mtm.beans.dto.VehicleRecord;
+import com.mtm.beans.dto.Vehicle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +11,10 @@ import java.util.List;
  */
 public class VehicleDao extends AbstractDao{
     private static final String TABLE_NAME = "vehicle";
+    private static final  Class RECORD_CLASS = Vehicle.class;
     public VehicleDao()
     {
-        super(TABLE_NAME);
+        super(TABLE_NAME, RECORD_CLASS);
     }
 
 
@@ -24,15 +25,15 @@ public class VehicleDao extends AbstractDao{
 
         for(List<String> record : records)
         {
-            Record vehicleRecord = new VehicleRecord();
+            Record vehicleRecord = new Vehicle();
             for(String columnValue : record)
             {
-                ((VehicleRecord)vehicleRecord).setVehicleid(Integer.parseInt(record.get(0)));
-                ((VehicleRecord)vehicleRecord).setRegistration_num(record.get(1));
-                ((VehicleRecord)vehicleRecord).setOwnerId(Integer.parseInt(record.get(2)));
-                ((VehicleRecord)vehicleRecord).setDriverId(Integer.parseInt(record.get(3)));
-                ((VehicleRecord)vehicleRecord).setModel_num(Integer.parseInt(record.get(4)));
-                ((VehicleRecord)vehicleRecord).setVehicle_type(record.get(5));
+                ((Vehicle)vehicleRecord).setVehicleid(Integer.parseInt(record.get(0)));
+                ((Vehicle)vehicleRecord).setRegistration_num(record.get(1));
+                ((Vehicle)vehicleRecord).setOwnerid(Integer.parseInt(record.get(2)));
+                ((Vehicle)vehicleRecord).setDriverid(Long.parseLong(record.get(3)));
+                ((Vehicle)vehicleRecord).setModel_num(Integer.parseInt(record.get(4)));
+                ((Vehicle)vehicleRecord).setVehicle_type(record.get(5));
             }
             vehicleRecords.add(vehicleRecord);
         }

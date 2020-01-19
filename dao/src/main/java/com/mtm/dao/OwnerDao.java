@@ -1,13 +1,11 @@
 package com.mtm.dao;
 
-import com.mtm.beans.dto.Record;
-import com.mtm.dao.connection.Database;
-import com.mtm.dao.connection.MySqlDatabase;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.Statement;
+import com.mtm.beans.dto.Consigner;
+import com.mtm.beans.dto.Owner;
+import com.mtm.beans.dto.OwnerConsigner;
+import com.mtm.beans.dto.Record;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,12 +15,39 @@ import java.util.List;
 public class OwnerDao extends AbstractDao {
 
     private static final String TABLE_NAME = "owner";
+    private static final  Class RECORD_CLASS = Owner.class;
     public OwnerDao()
     {
-        super(TABLE_NAME);
+        super(TABLE_NAME, RECORD_CLASS);
     }
 
     public List<Record> getConvertedRecords(String whereClause) {
         return null;
     }
+
+    public List<OwnerConsigner> getConsigners(String ownerId)
+    {
+        String query = "select consignerid, consigner_name, is_company, consigner_contact, image_url from\n" +
+                "consigner where consignerid  in (select consignerid from owner_consigner where ownerid ="+ownerId+") ";
+
+        List<List<String>> consignerRecords = executeQuery(query);
+        List<OwnerConsigner> consigners = new ArrayList<OwnerConsigner>();
+        for(List<String> record : consignerRecords)
+        {
+            OwnerConsigner consigner = new OwnerConsigner();
+            consigner.setConsignerid(Long.parseLong(record.get(0)));
+            consigner.setConsigner_name(record.get(1));
+            consigner.setIs_company(record.get(2).charAt(0));
+            consigner.setConsigner_contact(Long.parseLong(record.get(3)));
+            consigner.setImage_url(record.get(4));
+            consigners.add(consigner);
+
+        }
+
+        return consigners;
+
+
+    }
+
+
 }

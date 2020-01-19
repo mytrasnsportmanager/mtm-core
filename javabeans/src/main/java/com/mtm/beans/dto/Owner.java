@@ -1,21 +1,25 @@
 package com.mtm.beans.dto;
 
-import java.security.acl.Owner;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 
 /**
  * Created by Admin on 2/24/2019.
  */
-public class OwnerRecord extends Record{
+public class Owner extends Record{
 
-    public String getOwnerId() {
-        return ownerId;
+    @JsonProperty
+    public long getOwnerid() {
+        return ownerid;
     }
 
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
+    public void setOwnerid(long ownerId) {
+        this.ownerid = ownerId;
     }
 
+    @JsonProperty
     public String getName() {
         return name;
     }
@@ -24,6 +28,7 @@ public class OwnerRecord extends Record{
         this.name = name;
     }
 
+    @JsonProperty
     public String getAddress() {
         return address;
     }
@@ -32,6 +37,7 @@ public class OwnerRecord extends Record{
         this.address = address;
     }
 
+    @JsonProperty
     public long getContact() {
         return contact;
     }
@@ -40,24 +46,23 @@ public class OwnerRecord extends Record{
         this.contact = contact;
     }
 
-    private String ownerId;
+
+    public String getImage_url() {
+        return image_url;
+    }
+
+    public void setImage_url(String image_url) {
+        if(image_url!=null)
+        this.image_url = image_url;
+    }
+
+    private long ownerid;
     private String name;
     private String address;
     private long contact;
+    private String image_url="default.jpg";
 
 
-    public OwnerRecord(String name, String address, long contact)
-    {
-        this.ownerId = null; // Is an auto increment
-        this.name = name;
-        this.address = address;
-        this.contact = contact;
-        record = new ArrayList();
-        record.add(null);
-        record.add(name);
-        record.add(address);
-        record.add(contact);
 
-    }
 
 }

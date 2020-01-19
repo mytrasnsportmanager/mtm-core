@@ -1,11 +1,14 @@
 package com.mtm.beans.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 
 /**
  * Created by Admin on 3/4/2019.
  */
-public class RateRecord extends Record{
+public class Rate extends Record{
+    @JsonProperty
     public long getRateid() {
         return rateid;
     }
@@ -14,6 +17,7 @@ public class RateRecord extends Record{
         this.rateid = rateid;
     }
 
+    @JsonProperty
     public long getConsignerid() {
         return consignerid;
     }
@@ -22,6 +26,7 @@ public class RateRecord extends Record{
         this.consignerid = consignerid;
     }
 
+    @JsonProperty
     public double getRate_per_ton() {
         return rate_per_ton;
     }
@@ -30,6 +35,7 @@ public class RateRecord extends Record{
         this.rate_per_ton = rate_per_ton;
     }
 
+    @JsonProperty
     public String getMaterial_name() {
         return material_name;
     }
@@ -39,19 +45,6 @@ public class RateRecord extends Record{
     }
 
     private long rateid        ;
-
-    public RateRecord(long rateid, long consignerid, double rate_per_ton, String material_name) {
-        this.rateid = rateid;
-        this.consignerid = consignerid;
-        this.rate_per_ton = rate_per_ton;
-        this.material_name = material_name;
-        record = new ArrayList();
-        record.add(null);
-        record.add(consignerid);
-        record.add(rate_per_ton);
-        record.add(material_name);
-    }
-
     private long consignerid   ;
     private double rate_per_ton  ;
     private String material_name ;

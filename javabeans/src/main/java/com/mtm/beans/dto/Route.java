@@ -1,12 +1,15 @@
 package com.mtm.beans.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 
 /**
  * Created by Admin on 3/4/2019.
  */
-public class RouteRecord extends Record{
+public class Route extends Record{
 
+    @JsonProperty
     public long getRouteid() {
         return routeid;
     }
@@ -15,6 +18,7 @@ public class RouteRecord extends Record{
         this.routeid = routeid;
     }
 
+    @JsonProperty
     public String getSource() {
         return source;
     }
@@ -23,6 +27,7 @@ public class RouteRecord extends Record{
         this.source = source;
     }
 
+    @JsonProperty
     public String getDestination() {
         return destination;
     }
@@ -31,6 +36,7 @@ public class RouteRecord extends Record{
         this.destination = destination;
     }
 
+    @JsonProperty
     public long getConsignerid() {
         return consignerid;
     }
@@ -39,6 +45,7 @@ public class RouteRecord extends Record{
         this.consignerid = consignerid;
     }
 
+    @JsonProperty
     public String getSource_district() {
         return source_district;
     }
@@ -47,6 +54,7 @@ public class RouteRecord extends Record{
         this.source_district = source_district;
     }
 
+    @JsonProperty
     public String getSource_state() {
         return source_state;
     }
@@ -55,6 +63,7 @@ public class RouteRecord extends Record{
         this.source_state = source_state;
     }
 
+    @JsonProperty
     public String getDestination_district() {
         return destination_district;
     }
@@ -63,6 +72,7 @@ public class RouteRecord extends Record{
         this.destination_district = destination_district;
     }
 
+    @JsonProperty
     public String getDestination_state() {
         return destination_state;
     }
@@ -71,6 +81,7 @@ public class RouteRecord extends Record{
         this.destination_state = destination_state;
     }
 
+    @JsonProperty
     public double getSource_longitude() {
         return source_longitude;
     }
@@ -79,6 +90,7 @@ public class RouteRecord extends Record{
         this.source_longitude = source_longitude;
     }
 
+    @JsonProperty
     public double getSource_latitude() {
         return source_latitude;
     }
@@ -87,6 +99,7 @@ public class RouteRecord extends Record{
         this.source_latitude = source_latitude;
     }
 
+    @JsonProperty
     public double getDestination_longitude() {
         return destination_longitude;
     }
@@ -95,6 +108,7 @@ public class RouteRecord extends Record{
         this.destination_longitude = destination_longitude;
     }
 
+    @JsonProperty
     public double getDestination_latitude() {
         return destination_latitude;
     }
@@ -103,34 +117,7 @@ public class RouteRecord extends Record{
         this.destination_latitude = destination_latitude;
     }
 
-    public RouteRecord(long routeid, String source, String destination, long consignerid, String source_district, String source_state, String destination_district, String destination_state, double source_longitude, double source_latitude, double destination_longitude, double destination_latitude) {
-        this.routeid = routeid;
-        this.source = source;
-        this.destination = destination;
-        this.consignerid = consignerid;
-        this.source_district = source_district;
-        this.source_state = source_state;
-        this.destination_district = destination_district;
-        this.destination_state = destination_state;
-        this.source_longitude = source_longitude;
-        this.source_latitude = source_latitude;
-        this.destination_longitude = destination_longitude;
-        this.destination_latitude = destination_latitude;
-        record = new ArrayList();
-        record.add(null);
-        record.add(source);
-        record.add(destination);
-        record.add(consignerid);
-        record.add(source_district);
-        record.add(source_state);
-        record.add(destination_district);
-        record.add(destination_state);
-        record.add(source_longitude);
-        record.add(source_latitude);
-        record.add(destination_longitude);
-        record.add(destination_latitude);
 
-    }
 
     private long routeid                 ;
     private String source                ;
@@ -144,4 +131,68 @@ public class RouteRecord extends Record{
     private double source_latitude       ;
     private double destination_longitude ;
     private double destination_latitude  ;
+    private long ownerid;
+    private double rate;
+    private String rate_type ;
+    private String consigner_name;
+    private String consigner_contact;
+    private String consigner_image;
+
+
+    @JsonProperty
+    public String getConsigner_name() {
+        return consigner_name;
+    }
+
+    public void setConsigner_name(String consigner_name) {
+        this.consigner_name = consigner_name;
+    }
+
+    @JsonProperty
+    public String getConsigner_contact() {
+        return consigner_contact;
+    }
+
+    public void setConsigner_contact(String consigner_contact) {
+        this.consigner_contact = consigner_contact;
+    }
+
+    @JsonProperty
+    public String getConsigner_image() {
+        return consigner_image;
+    }
+
+    public void setConsigner_image(String consigner_image) {
+        this.consigner_image = consigner_image;
+    }
+
+    @JsonProperty
+    public double getRate() {
+        return rate;
+    }
+
+    public void setRate(double rate) {
+        this.rate = rate;
+    }
+
+    @JsonProperty
+    public String getRate_type() {
+        return rate_type;
+    }
+
+    public void setRate_type(String rate_type) {
+        this.rate_type = rate_type;
+    }
+
+
+    @JsonProperty
+    public long getOwnerid() {
+        return ownerid;
+    }
+
+    public void setOwnerid(long ownerid) {
+        this.ownerid = ownerid;
+    }
+
+
 }

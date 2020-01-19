@@ -1,6 +1,5 @@
 package com.mtm.dao.test;
 
-import com.mtm.beans.dto.OwnerRecord;
 import com.mtm.dao.OwnerDao;
 import org.junit.Test;
 
@@ -17,7 +16,7 @@ public class OwnerDaoTest {
    /* public static void main (String args[])
     {
         OwnerDao ownerDao = new OwnerDao();
-        OwnerRecord ownerRecord = new OwnerRecord("Kamakhya Narayan Singh","H No 101, Block Road , Chhattarpur",938509325);
+        Owner ownerRecord = new Owner("Kamakhya Narayan Singh","H No 101, Block Road , Chhattarpur",938509325);
         ownerDao.insert(ownerRecord);
     }*/
 

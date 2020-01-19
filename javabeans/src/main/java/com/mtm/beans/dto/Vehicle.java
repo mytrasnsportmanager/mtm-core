@@ -2,27 +2,34 @@ package com.mtm.beans.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 
 /**
  * Created by Admin on 2/24/2019.
  */
-public class VehicleRecord extends Record {
+
+
+public class Vehicle extends Record {
+
     @JsonProperty
-    public int getDriverId() {
+    public long getDriverid() {
         return driverid;
     }
 
-    public void setDriverId(int driverId) {
+    public void setDriverid(long driverId) {
         this.driverid = driverId;
     }
 
     @JsonProperty
-    public long getOwnerId() {
+    public long getOwnerid() {
         return ownerid;
     }
 
-    public void setOwnerId(long ownerId) {
+    public void setOwnerid(long ownerId) {
         this.ownerid = ownerId;
     }
 
@@ -36,11 +43,11 @@ public class VehicleRecord extends Record {
     }
 
     @JsonProperty
-    public int getVehicleid() {
+    public long getVehicleid() {
         return vehicleid;
     }
 
-    public void setVehicleid(int vehicleid) {
+    public void setVehicleid(long vehicleid) {
         this.vehicleid = vehicleid;
     }
 
@@ -62,33 +69,36 @@ public class VehicleRecord extends Record {
         this.registration_num = registration_num;
 
     }
-    public VehicleRecord( int model, String type, int driverId, String registrationNumber, long ownerId) {
+    public Vehicle(int model, String type, int driverId, String registrationNumber, long ownerId) {
         this.model_num = model;
         this.vehicle_type = type;
         this.driverid = driverId;
         this.registration_num = registrationNumber;
         this.ownerid = ownerId;
-        record = new ArrayList();
-        record.add(null);
-        record.add(registrationNumber);
-        record.add(ownerId);
-        record.add(driverId);
-        record.add(model);
-        record.add(type);
-
-
     }
-    public VehicleRecord()
+    public Vehicle()
     {
 
     }
 
+    @JsonProperty
+    public String getImage_url() {
+        return image_url;
+    }
+
+    public void setImage_url(String image_url) {
+
+        if(image_url!=null)
+        this.image_url = image_url;
+    }
+    private String image_url ="default.jpg";
     private int model_num;
 
 
     private String vehicle_type;
-    private int driverid;
+    private long driverid;
     private String registration_num;
     private long ownerid;
-    private int vehicleid;
+    private long vehicleid;
+
 }

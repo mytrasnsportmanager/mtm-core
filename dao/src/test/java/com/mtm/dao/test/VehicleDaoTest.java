@@ -1,6 +1,6 @@
 package com.mtm.dao.test;
 
-import com.mtm.beans.dto.VehicleRecord;
+import com.mtm.beans.dto.Vehicle;
 import com.mtm.dao.VehicleDao;
 import org.junit.Test;
 
@@ -15,9 +15,9 @@ public class VehicleDaoTest {
     public void testInsert()
     {
         VehicleDao ownerDao = new VehicleDao();
-        VehicleRecord ownerRecord = new VehicleRecord(2018,"12 Tyres Hyva", 0,"JH032968",1);
-        int numrecord = ownerDao.insert(ownerRecord);
-        assertEquals(1,numrecord);
+        Vehicle ownerRecord = new Vehicle(2018,"10 Tyres Hyva", 1,"JH03A2768",1);
+        long insertId = ownerDao.insert(ownerRecord);
+        //assertEquals(1,numrecord);
     }
 
 
