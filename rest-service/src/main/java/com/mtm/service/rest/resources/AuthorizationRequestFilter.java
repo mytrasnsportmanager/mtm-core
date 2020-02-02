@@ -30,6 +30,7 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
     {
         noAuthCheckURIList.add("mtm/login");
         noAuthCheckURIList.add("mtm/users");
+       // noAuthCheckURIList.add("mtm/vehicles");
     }
 
     public void filter(ContainerRequestContext containerRequest)
@@ -54,10 +55,10 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
                 System.out.println("Cookie Name " + cookie.getName() + ", value " + cookie.getValue());
             }
         }
-        Object usercontact = session.getAttribute("usercontact");
-        if (usercontact!=null) {
-            //CookieParam cookieParam = session.get
-            System.out.println(usercontact.toString());
+        Object userid = session.getAttribute("userid");
+        if (userid!=null) {
+
+            // Let it pass
         }
         else if (isAuthTobeBypassed(path))
         {
@@ -68,7 +69,7 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
 
         else {
 
-            System.out.println("no session found");
+            //System.out.println("no session found");
             res.setStatus(401);
             String msg = String.format("Unauthorized");
             CacheControl cc = new CacheControl();

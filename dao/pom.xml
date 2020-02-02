@@ -24,6 +24,16 @@
         <artifactId>javabeans</artifactId>
         <version>1.0-SNAPSHOT</version>
     </dependency>
+    <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>RELEASE</version>
+    </dependency>
+    <dependency>
+        <groupId>com.mtm</groupId>
+        <artifactId>auth</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
 
 </dependencies>
 

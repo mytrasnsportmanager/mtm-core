@@ -72,6 +72,14 @@ public class VehicleDriver extends Record {
         this.contact = contact;
     }
 
+    public String getImage_url() {
+        return image_url;
+    }
+
+    public void setImage_url(String image_url) {
+        this.image_url = image_url;
+    }
+
     private String name;
     private String address;
     private long contact;
@@ -79,7 +87,6 @@ public class VehicleDriver extends Record {
     private long vehicleid;
     private Date start_dt;
     private Date end_dt;
-
-
+    private String image_url;
 
 }

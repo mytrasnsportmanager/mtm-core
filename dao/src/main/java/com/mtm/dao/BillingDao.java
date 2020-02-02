@@ -93,7 +93,7 @@ private Dao vehicleDao = new VehicleDao();
         Calendar calendar =  Calendar.getInstance();
         calendar.setTime(date);
         int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
+        int month = calendar.get(Calendar.MONTH) + 1 ; // calender's month is 0 indexed
         long ownerid ;
 
 

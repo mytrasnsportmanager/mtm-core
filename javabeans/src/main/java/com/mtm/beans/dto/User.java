@@ -79,6 +79,26 @@ public class User extends Record {
     private String name;
     private String address;
     private long contact;
+    private String passphrase;
+    private String externaluid;
+
+    public String getExternaluid() {
+        return externaluid;
+    }
+
+    public void setExternaluid(String externaluid) {
+        this.externaluid = externaluid;
+    }
+
+    @JsonProperty
+    public String getPassphrase() {
+        return passphrase;
+    }
+
+    public void setPassphrase(String passphrase) {
+        this.passphrase = passphrase;
+    }
+
     private String image_url="default.jpg";
 
 

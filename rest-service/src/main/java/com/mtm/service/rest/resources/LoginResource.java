@@ -6,6 +6,7 @@ import com.mtm.beans.UserType;
 import com.mtm.beans.dto.TripDetail;
 import com.mtm.beans.dto.User;
 import com.mtm.dao.*;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,20 +27,63 @@ public class LoginResource extends AbstractRestResource {
     @Context
     HttpServletResponse res;
     private static LoginDao loginDao = new LoginDao();
+    private static UserDao userDao = new UserDao();
 
     public LoginResource() {
         super(loginDao);
     }
 
+
     @GET
-    @Path("/login")
-    public Object login(@PathParam("contact") Optional<String> contactNumber)
-    {
-        HttpSession session= req.getSession(true);
-        session.setAttribute("usercontact","000000");
+    @Path("/logindummy")
+    public Object login() {
         Status status = new Status();
+        HttpSession session= req.getSession(true);
+        session.setAttribute("userid","1");
+        session.setAttribute("type","OWNER");
+        res.setHeader("userid","1");
         status.setReturnCode(0);
         status.setMessage("SUCCESS");
+        return status;
+
+    }
+
+
+        @POST
+    @Path("/login")
+    public Object login(User user)
+    {
+       Status status = new Status();
+
+
+        List<Object> userDBRecords = userDao.getRecords("contact = "+user.getContact());
+        if(userDBRecords.size()!=1)
+        {
+            status.setReturnCode(1);
+            status.setMessage("LOGIN_FAILURE");
+            return status;
+        }
+        User userDBRecord = (User)userDBRecords.get(0);
+       if(userDBRecord.getPassphrase()!=null && userDBRecord.getPassphrase().equals(DigestUtils.sha1Hex(user.getPassphrase())))
+
+        {
+            HttpSession session= req.getSession(true);
+            session.setAttribute("userid",user.getUserid());
+            session.setAttribute("type",user.getUsertype());
+            res.setHeader("userid",""+user.getUserid());
+            status.setReturnCode(0);
+            status.setMessage("SUCCESS");
+        }
+        else
+       {
+           HttpSession session= req.getSession();
+           if(session!=null)
+               session.invalidate();
+           status.setReturnCode(1);
+           status.setMessage("LOGIN_FAILURE");
+
+       }
+
         return status;
     }
 

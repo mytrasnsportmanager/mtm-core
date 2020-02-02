@@ -13,6 +13,7 @@ import com.mtm.dao.RateDao;
 import io.dropwizard.jersey.PATCH;
 
 import javax.ws.rs.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,10 +66,29 @@ public class OwnerConsignerResource extends AbstractRestResource {
 
     @GET
     @Path("/ownerconsigners/search")
-    public List<Object> search(@QueryParam("where") Optional<String> whereClause) {
+    public List<OwnerConsigner> search(@QueryParam("where") Optional<String> whereClause) {
+
+        List<OwnerConsigner> ownerConsigners = new ArrayList<>();
+        String query = "select b.image_url, a.consignerid, a.consigner_name, a.is_company, a.consigner_contact, a.ownerid,a.billingday from (select * from owner_consigner where "+whereClause.get()+") a inner join consigner b on a.consignerid=b.consignerid";
+        List<List<String>> records = dao.executeQuery(query);
+        for(List<String> record : records)
+        {
+            OwnerConsigner ownerConsigner = new OwnerConsigner();
+            ownerConsigner.setImage_url(record.get(0));
+            ownerConsigner.setConsignerid(Long.parseLong(record.get(1)));
+            ownerConsigner.setConsigner_name(record.get(2));
+            ownerConsigner.setIs_company(record.get(3).charAt(0));
+            ownerConsigner.setConsigner_contact(Long.parseLong(record.get(4)));
+            ownerConsigner.setOwnerid(Long.parseLong(record.get(5)));
+            ownerConsigner.setBillingday(Integer.parseInt(record.get(6)));
+            ownerConsigners.add(ownerConsigner);
 
 
-        return get(whereClause.get());
+        }
+
+
+
+        return ownerConsigners;
 
     }
 

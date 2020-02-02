@@ -73,7 +73,7 @@ public class RouteResource extends AbstractRestResource {
         String query = "select count(*) from trip where routeid = "+routeId.get();
         List<List<String>> records = dao.executeQuery(query);
         Status status = new Status();
-        if(records.size()==0)
+        if(records.size()==0 || Long.parseLong(records.get(0).get(0)) == 0)
         {
             String whereClause = " routeId = "+routeId.get();
             dao.delete(whereClause);

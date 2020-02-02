@@ -1,8 +1,11 @@
 package com.mtm.dao;
 
+import com.google.firebase.auth.UserRecord;
+import com.mtm.auth.FirebaseUserUtil;
 import com.mtm.beans.Status;
 import com.mtm.beans.UserType;
 import com.mtm.beans.dto.*;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.List;
 
@@ -30,8 +33,24 @@ public class UserDao extends AbstractDao{
 
     public Status addUser(User user)
     {
-        long insertedId = 0;
         Status status = new Status();
+        List<Object> userDBRecords = this.getRecords("contact = "+user.getContact());
+        if(userDBRecords.size()!=0)
+        {
+            status.setReturnCode(1);
+            status.setMessage("USER_EXISTS");
+            System.out.println("User already exists");
+            return status;
+        }
+        if(!isValidFirebaseUser(user))
+        {
+            status.setReturnCode(1);
+            status.setMessage("User not found");
+            return status;
+        }
+
+        long insertedId = 0;
+
 
         if(user.getUsertype().equalsIgnoreCase(UserType.OWNER.toString()))
         {
@@ -60,12 +79,25 @@ public class UserDao extends AbstractDao{
 
         }
         user.setUserid(insertedId);
+        String hashedPhrase = DigestUtils.sha1Hex(user.getPassphrase());
+        user.setPassphrase(hashedPhrase);
         insert(user);
         status.setReturnCode(0);
         status.setInsertedId(insertedId);
         status.setMessage("SUCCESS");
         return status;
 
+
+    }
+
+    private boolean isValidFirebaseUser(User user)
+    {
+        UserRecord userRecord = FirebaseUserUtil.getUserByPhone("+91"+user.getContact());
+        if(userRecord==null)
+            return false;
+        if(user.getExternaluid().equals(userRecord.getUid()))
+            return true;
+        return false;
 
     }
 
