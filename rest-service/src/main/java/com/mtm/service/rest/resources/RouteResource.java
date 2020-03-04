@@ -69,25 +69,19 @@ public class RouteResource extends AbstractRestResource {
     @Timed
     public Object deleteRoute(@PathParam("routeid") Optional<String> routeId)
     {
-     // Check if route is being used currently, if yes, then send error else delete
-        String query = "select count(*) from trip where routeid = "+routeId.get();
-        List<List<String>> records = dao.executeQuery(query);
-        Status status = new Status();
-        if(records.size()==0 || Long.parseLong(records.get(0).get(0)) == 0)
-        {
-            String whereClause = " routeId = "+routeId.get();
-            dao.delete(whereClause);
-            status.setReturnCode(0);
-            status.setMessage("SUCCESS");
-        }
-        else
-        {
 
-            status.setReturnCode(1);
-            status.setMessage("This route is being used in unbilled transaction, cannot be deleted");
-        }
+     Status status = new Status();
+     if(dao.delete(" routeid = "+routeId.get())==1) {
+         status.setMessage("SUCEESS");
+         status.setReturnCode(0);
+
+     }
+     else
+     {
+         status.setReturnCode(1);
+         status.setMessage("The route could not be deleted, there are active trips");
+     }
         return status;
-
 
     }
 

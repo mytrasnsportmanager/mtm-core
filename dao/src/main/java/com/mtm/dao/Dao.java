@@ -21,6 +21,7 @@ public interface Dao {
     public List<List<String>> executeQuery(String selectQuery);
     public Connection getConnection();
     public int delete(String whereClause);
+    public boolean isRecordPresentInRelatedTable(String relatedTable, String baseTableIdColumn, Object value);
 
 
 }

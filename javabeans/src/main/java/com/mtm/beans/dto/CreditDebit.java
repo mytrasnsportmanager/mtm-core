@@ -112,7 +112,24 @@ public class CreditDebit extends Record implements Serializable{
     public void setRowid(long rowid) {
         this.rowid = rowid;
     }
+    @XmlElement
+    public String getChallanImageURL() {
+        return challanImageURL;
+    }
+
+    public void setChallanImageURL(String challanImageURL) {
+        this.challanImageURL = challanImageURL;
+    }
 
     private long rowid;
+    private String challanImageURL;
+    private long tripid;
 
+    public long getTripid() {
+        return tripid;
+    }
+
+    public void setTripid(long tripid) {
+        this.tripid = tripid;
+    }
 }

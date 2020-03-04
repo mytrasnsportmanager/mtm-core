@@ -31,6 +31,7 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
         noAuthCheckURIList.add("mtm/login");
         noAuthCheckURIList.add("mtm/users");
        // noAuthCheckURIList.add("mtm/vehicles");
+       // noAuthCheckURIList.add("mtm/vehicles");
     }
 
     public void filter(ContainerRequestContext containerRequest)
@@ -49,6 +50,7 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
         String path = uriInfo.getPath();
         System.out.println("The path is "+path);
         HttpSession session= req.getSession(true);
+        //session.setMaxInactiveInterval(100);
         javax.servlet.http.Cookie[] cookies = req.getCookies();
         if(cookies!=null) {
             for (javax.servlet.http.Cookie cookie : cookies) {

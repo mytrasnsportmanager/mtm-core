@@ -20,6 +20,7 @@ import java.util.List;
  * Created by Admin on 7/15/2019.
  */
 @Produces(MediaType.APPLICATION_JSON)
+
 public class LoginResource extends AbstractRestResource {
 
     @Context

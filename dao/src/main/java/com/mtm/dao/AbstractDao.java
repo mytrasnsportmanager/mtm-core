@@ -1,12 +1,17 @@
 package com.mtm.dao;
 
-import com.google.common.base.Joiner;
+import com.codahale.metrics.annotation.Timed;
+import com.google.common.base.*;
+import com.mtm.beans.Status;
 import com.mtm.beans.dto.Record;
 import com.mtm.dao.beans.DataType;
 import com.mtm.dao.connection.Database;
 import com.mtm.dao.connection.MySqlDatabase;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.ws.rs.DELETE;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
@@ -440,6 +445,27 @@ public abstract class AbstractDao implements  Dao {
             e.printStackTrace();
         }
         return 0;
+    }
+
+
+    public boolean isRecordPresentInRelatedTable(String relatedTable, String baseTableIdColumn, Object value)
+    {
+        // Check if route is being used currently, if yes, then send error else delete
+        String query = "select count(*) from "+relatedTable+" where "+baseTableIdColumn +" = "+value;
+        List<List<String>> records = executeQuery(query);
+        Status status = new Status();
+        if(records.size()==0 || Long.parseLong(records.get(0).get(0)) == 0)
+        {
+           /* String whereClause = baseTableIdColumn+ " = "+value;
+            delete(whereClause);
+            status.setReturnCode(0);
+            status.setMessage("SUCCESS");*/
+           return true;
+        }
+
+        return false;
+
+
     }
 
 }

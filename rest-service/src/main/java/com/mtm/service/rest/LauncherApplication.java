@@ -27,7 +27,7 @@ public class LauncherApplication extends Application<RestConfiguration> {
         EnumSet<SessionTrackingMode> DEFAULT_TRACKING = EnumSet.of(SessionTrackingMode.COOKIE,SessionTrackingMode.URL);
         org.eclipse.jetty.server.session.SessionHandler sessionHandler = new org.eclipse.jetty.server.session.SessionHandler();
         environment.jersey().register(sessionHandler);
-        sessionHandler.setMaxInactiveInterval(7200);
+        sessionHandler.setMaxInactiveInterval(3600);
         sessionHandler.setSessionTrackingModes(DEFAULT_TRACKING);
         environment.servlets().setSessionHandler(sessionHandler);
 

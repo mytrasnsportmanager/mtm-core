@@ -137,9 +137,16 @@ public class VehicleWork implements Serializable {
         this.currentUnbilled = currentUnbilled;
     }
 
+
+
+
     private String totalReceivables;
     private String currentUnbilled;
     private String previousBilled;
+
+
+
+
 
 
 

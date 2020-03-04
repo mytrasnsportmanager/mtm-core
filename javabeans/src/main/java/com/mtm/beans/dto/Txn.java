@@ -1,5 +1,6 @@
 package com.mtm.beans.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.text.ParseException;
@@ -69,6 +70,7 @@ public class Txn extends Record {
 
     @JsonProperty
     public Date getTxn_date() {
+
         return txn_date;
     }
 
@@ -113,6 +115,7 @@ public class Txn extends Record {
     private long vehicleid;
     private double amount;
     private int txn_type;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private Date txn_date = defaultDate;
     private long consignerid;
     private String txn_mode;

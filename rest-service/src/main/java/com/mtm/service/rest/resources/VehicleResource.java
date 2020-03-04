@@ -102,6 +102,17 @@ public class VehicleResource extends AbstractRestResource {
 
     }
 
+    @DELETE
+    @Path("/vehicles/{vehicleid}")
+    @Timed
+    public Object deleteRoute(@PathParam("vehicleid") Optional<String> vehicleId)
+    {
+
+        return dao.delete(" vehicleid = "+vehicleId);
+
+
+    }
+
 
 
     @GET

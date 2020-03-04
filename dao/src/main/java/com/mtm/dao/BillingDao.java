@@ -140,8 +140,8 @@ private Dao vehicleDao = new VehicleDao();
             statement.executeUpdate(tripHistoryInsertQuery);
             statement.executeUpdate(earnedReceivedHistoryInsertQuery);
             statement.executeUpdate(updateBillDetails);
-            //statement.executeUpdate(updateTripsBillingIdQuery);
-            //statement.executeUpdate(updateTxnsBillingIdQuery);
+            statement.executeUpdate(updateTripsBillingIdQuery);
+            statement.executeUpdate(updateTxnsBillingIdQuery);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -183,9 +183,9 @@ private Dao vehicleDao = new VehicleDao();
 
         String earningsAndReceivedQuery =  null;
         if(!includeBilledRecords)
-        earningsAndReceivedQuery = "select  v.registration_num, (t.work_done * r.rate) as amount , t.starttime, 'earned' as type, t.challanid, '0' as work from trip t inner join route r on t.routeid = r.routeid  inner join vehicle v on t.vehicleid = v.vehicleid where (t.billingid is null or t.billingid =0 ) and t.vehicleid = "+vehicleid+" and r.consignerid = "+consignerid+" union all select v.registration_num , tx.amount , tx.txn_Date, 'received' as type , tx.txnid , tx.txn_type from txn tx inner join vehicle v on tx.vehicleid=v.vehicleid where (tx.billingid is null or tx.billingid =0 ) and  tx.vehicleid ="+vehicleid+" and tx.consignerid = "+consignerid;
+        earningsAndReceivedQuery = "select  v.registration_num, (t.work_done * r.rate) as amount , t.starttime, 'earned' as type, t.challanid, '0' as work, t.image_url, t.tripid  from trip t inner join route r on t.routeid = r.routeid  inner join vehicle v on t.vehicleid = v.vehicleid where (t.billingid is null or t.billingid =0 ) and t.vehicleid = "+vehicleid+" and r.consignerid = "+consignerid+" union all select v.registration_num , tx.amount , tx.txn_Date, 'received' as type , tx.txnid , tx.txn_type, '' as image_url, tx.tripid  from txn tx inner join vehicle v on tx.vehicleid=v.vehicleid where (tx.billingid is null or tx.billingid =0 ) and  tx.vehicleid ="+vehicleid+" and tx.consignerid = "+consignerid;
         else
-            earningsAndReceivedQuery = "select  v.registration_num, (t.work_done * r.rate) as amount , t.starttime, 'earned' as type, t.challanid, '0' as work from trip t inner join route r on t.routeid = r.routeid  inner join vehicle v on t.vehicleid = v.vehicleid where and t.vehicleid = "+vehicleid+" and r.consignerid = "+consignerid+" union all select v.registration_num , tx.amount , tx.txn_Date, 'received' as type , tx.txnid , tx.txn_type from txn tx inner join vehicle v on tx.vehicleid=v.vehicleid where tx.vehicleid ="+vehicleid+" and tx.consignerid = "+consignerid;
+            earningsAndReceivedQuery = "select  v.registration_num, (t.work_done * r.rate) as amount , t.starttime, 'earned' as type, t.challanid, '0' as work, t.image_url, t.tripid from trip t inner join route r on t.routeid = r.routeid  inner join vehicle v on t.vehicleid = v.vehicleid where and t.vehicleid = "+vehicleid+" and r.consignerid = "+consignerid+" union all select v.registration_num , tx.amount , tx.txn_Date, 'received' as type , tx.txnid , tx.txn_type, '' as image_url, tx.tripid  from txn tx inner join vehicle v on tx.vehicleid=v.vehicleid where tx.vehicleid ="+vehicleid+" and tx.consignerid = "+consignerid;
         results = dao.executeQuery(earningsAndReceivedQuery);
 
         List<CreditDebit> creditDebits = new ArrayList<CreditDebit>();
@@ -212,6 +212,9 @@ private Dao vehicleDao = new VehicleDao();
            creditDebit.setType(record.get(3));
            creditDebit.setId(record.get(4));
            creditDebit.setTxn_type(TxnType.getFromValue(Integer.parseInt(record.get(5))));
+           creditDebit.setChallanImageURL(record.get(6));
+           creditDebit.setTripid(Long.parseLong(record.get(7)));
+
 
            creditDebits.add(creditDebit);
         }

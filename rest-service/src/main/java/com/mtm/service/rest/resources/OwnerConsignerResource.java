@@ -63,7 +63,26 @@ public class OwnerConsignerResource extends AbstractRestResource {
         return dao.getRecords("1=1");
     }
 
+    @DELETE
+    @Path("/ownerconsigners/{ownerid}/{consignerid}")
+    @Timed
+    public Object deleteRelation(@PathParam("consignerid") Optional<String> ownerid , @PathParam("ownerid") Optional<String> consignerid)
+    {
 
+        Status status = new Status();
+        if(dao.delete(" ownerid = "+ownerid.get()+" and consignerid = "+consignerid.get())==1) {
+            status.setMessage("SUCEESS");
+            status.setReturnCode(0);
+
+        }
+        else
+        {
+            status.setReturnCode(1);
+            status.setMessage("The consigner could not deleted because of active routes");
+        }
+        return status;
+
+    }
     @GET
     @Path("/ownerconsigners/search")
     public List<OwnerConsigner> search(@QueryParam("where") Optional<String> whereClause) {

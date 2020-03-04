@@ -113,6 +113,27 @@ public class TxnResource extends  AbstractRestResource {
 
     }
 
+    @DELETE
+    @Path("/txns/{txnid}")
+    @Timed
+    public Object deleteTxn(@PathParam("txnid") Optional<String> txnId)
+    {
+
+        Status status = new Status();
+        if(dao.delete(" txnid = "+txnId.get())==1) {
+            status.setMessage("SUCEESS");
+            status.setReturnCode(0);
+
+        }
+        else
+        {
+            status.setReturnCode(1);
+            status.setMessage("The request could not be processed");
+        }
+        return status;
+
+    }
+
     @GET
     @Path("/txns/getpaginated")
     public List<Txn> getPaginatedRecords(@QueryParam("where") Optional<String> whereClause, @QueryParam("min") Optional<String> min, @QueryParam("max") Optional<String> max, @QueryParam("recordsPerPage") Optional<String> recordsPerPage) {

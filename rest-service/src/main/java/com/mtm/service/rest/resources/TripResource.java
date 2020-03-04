@@ -119,6 +119,27 @@ public class TripResource extends AbstractRestResource{
 
     }
 
+    @DELETE
+    @Path("/trips/{tripid}")
+    @Timed
+    public Object deleteTrip(@PathParam("tripid") Optional<String> tripId)
+    {
+
+        Status status = new Status();
+        if(dao.delete(" tripid = "+tripId.get())==1) {
+            status.setMessage("SUCEESS");
+            status.setReturnCode(0);
+
+        }
+        else
+        {
+            status.setReturnCode(1);
+            status.setMessage("The request could not be processed");
+        }
+        return status;
+
+    }
+
 
     @GET
     @Path("/trips/getpaginated")

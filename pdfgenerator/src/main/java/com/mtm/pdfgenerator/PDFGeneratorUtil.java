@@ -32,13 +32,16 @@ import java.util.List;
 public class PDFGeneratorUtil {
 
     private final static String PDF_GENERATION_TEMP_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/pdfs/";
+    private final static String CHALLAN_GENERATION_TEMP_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/pdfs/";
     private final static String XSLT_FILE_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/table.xml";
+    private final static String XSLT_CHALLAN_FILE_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/challan.xml";
     private final static String FOP_CONF_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/fop.xconf";
 
    //  For local execution
-   /* private final static String PDF_GENERATION_TEMP_PATH = "C:/prj/mtm";
-    private final static String XSLT_FILE_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/table.xml";
-    private final static String FOP_CONF_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/fop.xconf";*/
+   // private final static String CHALLAN_GENERATION_TEMP_PATH = "C:/prj/mtm";
+   // private final static String XSLT_CHALLAN_FILE_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/challan.xml";
+   // private final static String FOP_CONF_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/fop.xconf";
+    private final static String CHALLAN_IMAGE_LOCATION = "C:/prj/mtm/imgs/challans";
 
     public static String generate(long vehicleid, long consignerid) throws  Exception{
 /*..*/
@@ -112,4 +115,89 @@ public class PDFGeneratorUtil {
         return pdfFilePath;
 
     }
+
+
+    public static String generateChallans(long vehicleid, long consignerid) throws  Exception{
+
+        BillingDao billingDao = new BillingDao();
+        VehicleWork work = billingDao.downloadStatement(vehicleid,consignerid, false);
+        long currTimeInMilliseconds = System.currentTimeMillis();
+        String uniquePath = vehicleid+"_"+consignerid+"_"+currTimeInMilliseconds;
+        String xmlFilePath = CHALLAN_GENERATION_TEMP_PATH+uniquePath+"xmlfile.xml";
+        String pdfFilePath = CHALLAN_GENERATION_TEMP_PATH+uniquePath+"myfile.pdf";
+
+        for(CreditDebit creditDebit : work.getBusinessDetails())
+        {
+            // Construct local image URL
+            String imageURL = "url(file:////"+CHALLAN_IMAGE_LOCATION+"/"+creditDebit.getTripid()+".jpg)";
+            System.out.println("URL is "+imageURL);
+            creditDebit.setChallanImageURL(imageURL);
+        }
+
+
+        File xmlFile = new File(xmlFilePath);
+        File xsltFile = new File(XSLT_CHALLAN_FILE_PATH);
+        //File pdfFile = new File("C:\\Users\\Admin\\IdeaProjects\\mtm-core\\pdfgenerator\\src\\main\\resources\\myfile.pdf");
+
+
+
+        JAXBContext jaxbContext = JAXBContext.newInstance(VehicleWork.class);
+        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
+        // output pretty printed
+        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        //Outputstream opstream =
+
+        jaxbMarshaller.marshal(work, xmlFile);
+
+        FopFactory fopFactory = FopFactory.newInstance(new File(FOP_CONF_PATH));
+
+        FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(pdfFilePath)));
+
+        try {
+            // Step 3: Construct fop with desired output format
+            Fop fop = fopFactory.newFop(MimeConstants.MIME_PDF, foUserAgent, out);
+
+
+            // Step 4: Setup JAXP using identity transformer
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer(new StreamSource(xsltFile)); // identity transformer
+            transformer.setParameter("versionParam", "1.0");
+
+
+            // Step 5: Setup input and output for XSLT transformation
+            // Setup input stream
+            Source src = new StreamSource(xmlFile);
+
+            // Resulting SAX events (the generated FO) must be piped through to FOP
+            Result res = new SAXResult(fop.getDefaultHandler());
+
+            // Step 6: Start XSLT transformation and FOP processing
+            transformer.transform(src, res);
+
+        } finally {
+            //Clean-up
+            out.close();
+            Files.delete(Paths.get(xmlFilePath));
+        }
+
+        return pdfFilePath;
+
+
+
+    }
+
+    public static void main(String[] args)
+    {
+        try {
+            generateChallans(5,2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
 }

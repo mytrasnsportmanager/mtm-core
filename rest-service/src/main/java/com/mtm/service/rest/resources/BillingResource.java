@@ -162,6 +162,40 @@ public class BillingResource extends AbstractRestResource {
             return null;
         }
 
+
+    @GET
+    @Produces("application/pdf")
+    @Path("/challans/download/{vehicleid}/{consignerid}")
+    @Timed
+    public Response downloadChallans(@PathParam("vehicleid") Optional<String> vehicleIdArg, @PathParam("consignerid") Optional<String> consignerIdArg)
+    {
+        long consignerId = Long.parseLong(consignerIdArg.get());
+        long vehicleId = Long.parseLong(vehicleIdArg.get());
+
+
+        try {
+            final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generate(vehicleId,consignerId));
+
+            return Response.ok().entity(new StreamingOutput() {
+
+                public void write(final OutputStream output) throws IOException, WebApplicationException {
+                    try {
+                        Files.copy(generatedPDFPath, output);
+                    } finally {
+                        Files.delete(generatedPDFPath);
+                    }
+                }
+            }).build();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+
     }
 
 

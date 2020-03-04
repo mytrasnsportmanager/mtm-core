@@ -138,6 +138,16 @@ public class Route extends Record{
     private String consigner_contact;
     private String consigner_image;
 
+    public double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+
+    private double distance;
+
 
     @JsonProperty
     public String getConsigner_name() {
