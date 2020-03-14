@@ -1,16 +1,25 @@
 package com.mtm.service.rest.resources;
 
+import com.mtm.beans.UserSession;
+import com.mtm.service.rest.auth.AuthorizationHandler;
+import com.mtm.service.rest.auth.Authorizer;
+import org.apache.commons.io.IOUtils;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.*;
 import javax.ws.rs.ext.Provider;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +32,8 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
 
     @Context HttpServletRequest req;
     @Context  HttpServletResponse res;
+    @Context ResourceInfo resourceInfo;
     private static List<String> noAuthCheckURIList = new ArrayList<String>();
-
 
     static
     {
@@ -46,6 +55,8 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
             System.out.println(" Cookie Name , "+key+" , value "+cookie.getValue());
         }*/
 
+
+
         UriInfo uriInfo = containerRequest.getUriInfo();
         String path = uriInfo.getPath();
         System.out.println("The path is "+path);
@@ -57,8 +68,8 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
                 System.out.println("Cookie Name " + cookie.getName() + ", value " + cookie.getValue());
             }
         }
-        Object userid = session.getAttribute("userid");
-        if (userid!=null) {
+        Object userSession = session.getAttribute("user_session");
+        if (userSession!=null && isAuthorized(containerRequest,path)) {
 
             // Let it pass
         }
@@ -67,7 +78,6 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
             //Do nothing
 
         }
-
 
         else {
 
@@ -94,6 +104,48 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
         }
         return false;
     }
+
+
+
+    private boolean isAuthorized(ContainerRequestContext containerRequest, String path)
+    {
+
+        if(true)
+            return true;
+
+        Method method = resourceInfo.getResourceMethod();
+        String jsonBody = null;
+        if(!method.isAnnotationPresent(Authorizer.class))
+            return true;
+        Class authoirzationHandlerClass = method.getAnnotation(Authorizer.class).value();
+
+        try {
+            AuthorizationHandler authorizationHandler = (AuthorizationHandler)authoirzationHandlerClass.newInstance();
+            HttpSession httpSession = req.getSession();
+            UserSession userSession = (UserSession)(httpSession.getAttribute("user_session"));
+                    //System.out.println(req.get);
+            if(containerRequest.getMethod().equalsIgnoreCase("POST") || containerRequest.getMethod().equalsIgnoreCase("PATCH")) {
+
+                jsonBody = IOUtils.toString(containerRequest.getEntityStream(),"UTF8");
+            }
+
+
+            String queryString = req.getQueryString();
+
+
+          // return authorizationHandler.isAuthorized(path,containerRequest.getMethod(),userSession,queryString,jsonBody);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+
+
+    }
+
+
 
 }
 

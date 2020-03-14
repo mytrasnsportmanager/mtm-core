@@ -1,28 +1,22 @@
 package com.mtm.service.rest.resources;
 
 import com.codahale.metrics.annotation.Timed;
-import com.google.common.base.Optional;
 import com.mtm.beans.RateType;
 import com.mtm.beans.Status;
 import com.mtm.beans.dto.Trip;
 import com.mtm.beans.dto.TripDetail;
-import com.mtm.beans.dto.Txn;
-import com.mtm.beans.dto.Vehicle;
-import com.mtm.dao.Dao;
 import com.mtm.dao.TripDao;
-import com.mtm.dao.VehicleDao;
-import com.mtm.service.rest.utils.PaginationUtil;
+import com.mtm.service.rest.RestResourceType;
+import com.mtm.service.rest.auth.AllowAll;
+import com.mtm.service.rest.auth.AuthorizationHandler;
+import com.mtm.service.rest.auth.Authorizer;
+import com.mtm.service.rest.auth.TripAuthorizationHandler;
+import com.mtm.service.rest.validation.AuthorizationCheck;
 import io.dropwizard.jersey.PATCH;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,6 +29,7 @@ import java.util.List;
  */
 
 @Produces(MediaType.APPLICATION_JSON)
+@AuthorizationCheck
 public class TripResource extends AbstractRestResource{
     private static TripDao dao = new TripDao();
     private static final String PAGINATION_VIEW_NAME = "trip_detailed";
@@ -43,6 +38,18 @@ public class TripResource extends AbstractRestResource{
     private static final String PAGINATION_VIEW_ORDER_COLUMN="startTime";
     private static final List<String> PAGINATION_SELECT_COLUMNS = new ArrayList<String>();
     private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private TripAuthorizationHandler tripAuthorizationHandler = new TripAuthorizationHandler();
+
+    public void setTrip(Trip trip) {
+        this.trip = trip;
+    }
+
+    public Trip getTrip() {
+       return trip;
+    }
+
+    private Trip trip;
+
 
     static
     {
@@ -68,7 +75,8 @@ public class TripResource extends AbstractRestResource{
         PAGINATION_SELECT_COLUMNS.add("work_done"         );
     }
     public TripResource() {
-        super(dao);
+        super(dao, new TripAuthorizationHandler());
+        restResourceType = RestResourceType.TRIP;
         super.setPaginationSelectColumns(PAGINATION_SELECT_COLUMNS);
         super.setPaginationViewName(PAGINATION_VIEW_NAME);
         super.setPaginationViewIdColumn(PAGINATION_VIEW_ID_COLUMN);
@@ -79,10 +87,11 @@ public class TripResource extends AbstractRestResource{
 
     @POST
     @Path("/trips")
-    public Object createTrip(Trip trip)
+    public Object createTrip(Trip tripParam)
 
     {
         // Add startTime
+        trip = tripParam;
         Date date = new Date();
         DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
         DateTime nowIndia = DateTime.now(timeZoneIndia);
@@ -90,17 +99,20 @@ public class TripResource extends AbstractRestResource{
          return create(trip);
     }
 
+    @Authorizer(TripAuthorizationHandler.class)
     @PATCH
     @Path("/trips")
-    public Object patchVehicleRecord(Trip record)
+    public Object patchVehicleRecord(Trip tripParam)
 
     {
-        if(patch(record)==1)
+        trip = tripParam;
+        if(patch(trip)==1)
             return new Status("SUCCESS",0,0);
         else
             return new Status("FAILED",1,0);
     }
 
+    @Authorizer(AllowAll.class)
     @GET
     @Path("/trips")
     public Object getTrips()
@@ -112,7 +124,7 @@ public class TripResource extends AbstractRestResource{
 
     @GET
     @Path("/trips/search")
-    public List<Object> search(@QueryParam("where") Optional<String> whereClause) {
+    public List<Object> search() {
 
 
         return get(whereClause.get());
@@ -122,7 +134,7 @@ public class TripResource extends AbstractRestResource{
     @DELETE
     @Path("/trips/{tripid}")
     @Timed
-    public Object deleteTrip(@PathParam("tripid") Optional<String> tripId)
+    public Object deleteTrip()
     {
 
         Status status = new Status();
@@ -143,9 +155,7 @@ public class TripResource extends AbstractRestResource{
 
     @GET
     @Path("/trips/getpaginated")
-    public List<TripDetail> getPaginatedRecords(@QueryParam("where") Optional<String> whereClause , @QueryParam("min") Optional<String> min,
-                                     @QueryParam("max") Optional<String> max,
-                                     @QueryParam("recordsPerPage") Optional<String> recordsPerPage) {
+    public List<TripDetail> getPaginatedRecords() {
 
 
         List<List<String>> records = super.getPaginated(whereClause,min,max,recordsPerPage);
@@ -220,10 +230,12 @@ public class TripResource extends AbstractRestResource{
     @GET
     @Path("/trips/{tripid}")
     @Timed
-    public List<Object> getTrip(@PathParam("tripid") Optional<String> tripId) {
+    public List<Object> getTripFromId() {
 
         String whereClause = " tripid = "+tripId.get();
         return get(whereClause);
 
     }
+
+
 }

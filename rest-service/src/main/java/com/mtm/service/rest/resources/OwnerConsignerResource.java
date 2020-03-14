@@ -3,13 +3,9 @@ package com.mtm.service.rest.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
 import com.mtm.beans.Status;
-import com.mtm.beans.dto.OwnerConsigner;
-import com.mtm.beans.dto.Rate;
-import com.mtm.beans.dto.TripDetail;
-import com.mtm.beans.dto.Vehicle;
-import com.mtm.dao.Dao;
-import com.mtm.dao.OwnerConsignerDao;
-import com.mtm.dao.RateDao;
+import com.mtm.beans.UserType;
+import com.mtm.beans.dto.*;
+import com.mtm.dao.*;
 import io.dropwizard.jersey.PATCH;
 
 import javax.ws.rs.*;
@@ -33,6 +29,21 @@ public class OwnerConsignerResource extends AbstractRestResource {
     {
         long ownerid = ownerConsigner.getOwnerid();
         long consignerid = ownerConsigner.getConsignerid();
+        if(consignerid==0)
+        {
+            /*Create a provisional consigner record, the consignerid will be allocated automatically
+            when consigner registers for a login
+             */
+            UserDao userDao = new UserDao();
+            User user = new User();
+            user.setName(ownerConsigner.getConsigner_name());
+            user.setContact(ownerConsigner.getConsigner_contact());
+            user.setUsertype(UserType.CONSIGNER.toString());
+            user.setRegistered_by("OWNER");
+            consignerid = userDao.addUser(user).getInsertedId()  ;
+            //consigner.
+
+        }
         String whereClause = " ownerid="+ownerid+" and consignerid = "+consignerid;
         if(get(whereClause).size()==0)
         return create(ownerConsigner);

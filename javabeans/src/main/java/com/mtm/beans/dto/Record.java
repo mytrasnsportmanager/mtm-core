@@ -1,7 +1,11 @@
 package com.mtm.beans.dto;
 
+import com.google.common.base.Optional;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -21,4 +25,5 @@ public class Record {
    {
       return null;
    }
+
 }

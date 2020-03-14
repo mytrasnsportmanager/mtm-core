@@ -15,6 +15,7 @@ import javax.ws.rs.PathParam;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
@@ -34,6 +35,9 @@ public abstract class AbstractDao implements  Dao {
     private static Map<Column, Method> recordBeanGetterMethods = new HashMap<Column, Method>();
     private Class recordClass;
     private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private Date defaultDate ;
+    private static final String IMAGE_COLUMN_NAME = "image";
+    private static final String DEFAULT_IMAGE_URL = "default.jpg";
 
     protected AbstractDao()
     {
@@ -48,6 +52,11 @@ public abstract class AbstractDao implements  Dao {
         SchemaInfoDao schemaInfoDao = new MySqlSchemaInfoDao();
         columns = schemaInfoDao.getSchema(tableName);
         Collections.sort(columns,new ColumnComparator());
+        try {
+            defaultDate = dateTimeFormat.parse("1970-01-01 00:01:00");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         for(Column column : columns)
         {
             String setterMethodName = "set"+ column.getName().substring(0, 1).toUpperCase() + column.getName().substring(1);
@@ -199,6 +208,8 @@ public abstract class AbstractDao implements  Dao {
 
     public long patch(Record record) {
         StringBuffer patchQuery = new StringBuffer("update  "+tableName+" set ");
+
+        List<String> updateCoulmnValueList = new ArrayList<>();
         Connection connection = null;
         int numRecordsPatched  = 0;
         boolean first = true;
@@ -229,47 +240,48 @@ public abstract class AbstractDao implements  Dao {
                 idColumnValue = columnValue;
                 continue;
             }
-            if(first)
-            {
-                first = false;
-            }
-            else
-            {
-                patchQuery.append(",");
-            }
 
 
-
-            try {
-
-                if(columnValue == null  && !column.isAutoIncrement())
-                {
-                    patchQuery.append(column.getName()+"=null");
-                    continue;
-                }
-
-            } catch (Exception e) {
-            }
             switch (column.getType())
             {
-                case STRING: {
-                    patchQuery.append(column.getName()+" = '" +columnValue+ "'");
+                case STRING:
+                    if(columnValue!=null && StringUtils.isNotEmpty(columnValue.toString())) {
+                        if(!(column.getName().contains(IMAGE_COLUMN_NAME) && columnValue.equals(DEFAULT_IMAGE_URL)))
+                            updateCoulmnValueList.add(column.getName() + " = '" + columnValue + "'");
+                    }
                     break;
-                }
+
                 case DATE:
-                    patchQuery.append(column.getName()+" = '"+dateTimeFormat.format(columnValue)+"'");
+                    if(!columnValue.equals(defaultDate))
+                        updateCoulmnValueList.add(column.getName()+" = '"+dateTimeFormat.format(columnValue)+"'");
                     break;
                 case CHAR:
-                    patchQuery.append(column.getName()+" = '"+columnValue+"'");
+                    if((char)(columnValue)!=Character.MIN_VALUE)
+                        updateCoulmnValueList.add(column.getName()+" = '"+columnValue+"'");
+                    break;
+                case INT:
+                    if((int)(columnValue) > 0)
+                        updateCoulmnValueList.add(column.getName()+" = "+columnValue+"");
+                    break;
+                case LONG:
+                    if((long)(columnValue) > 0)
+                        updateCoulmnValueList.add(column.getName()+" = "+columnValue+"");
+                    break;
+                case DOUBLE:
+                    if((double)(columnValue) > 0d)
+                        updateCoulmnValueList.add(column.getName()+" = "+columnValue+"");
+                    break;
+                case FLOAT:
+                    if((float)(columnValue) > 0)
+                        updateCoulmnValueList.add(column.getName()+" = "+columnValue+"");
                     break;
                 default:
-                    patchQuery.append(column.getName()+" = "+columnValue);
+                    updateCoulmnValueList.add(column.getName()+" = "+columnValue);
 
             }
         }
 
-
-
+        patchQuery.append(Joiner.on(",").join(updateCoulmnValueList));
         patchQuery.append(" where "+idColumn + "="+idColumnValue);
         System.out.println("Patch Query >> "+patchQuery);
         try {
@@ -277,7 +289,7 @@ public abstract class AbstractDao implements  Dao {
             Statement statement = connection.createStatement();
             numRecordsPatched = statement.executeUpdate(patchQuery.toString());
 
-            System.out.println("updted count "+numRecordsPatched);
+            System.out.println("updated count "+numRecordsPatched);
              return numRecordsPatched;
 
 

@@ -36,7 +36,7 @@ public class LauncherApplication extends Application<RestConfiguration> {
         final ConsignerResource consignerResource = new ConsignerResource();
         final RateResource rateResource = new RateResource();
         final RouteResource routeResource = new RouteResource();
-        final TripResource tripResource = new TripResource();
+      //  final TripResource tripResource = new TripResource();
         final TxnResource txnResource = new TxnResource();
         final RouteAndRateResource routeAndRateResource = new RouteAndRateResource();
         final OwnerConsignerResource ownerConsignerResource = new OwnerConsignerResource();
@@ -50,23 +50,24 @@ public class LauncherApplication extends Application<RestConfiguration> {
         final AuthorizationRequestFilter authorizationRequestFilter = new AuthorizationRequestFilter();
 
         environment.jersey().register(authorizationRequestFilter);
-       environment.jersey().register(resource);
-       environment.jersey().register(consignerResource);
-       environment.jersey().register(ownerResource);
-       environment.jersey().register(rateResource);
-       environment.jersey().register(routeResource);
-       environment.jersey().register(tripResource);
-       environment.jersey().register(txnResource);
-       environment.jersey().register(routeAndRateResource);
-       environment.jersey().register(ownerConsignerResource);
-       environment.jersey().register(imageResource);
-       environment.jersey().register(loginResource);
-        environment.jersey().register(userResource);
-        environment.jersey().register(vehicleDriverResource);
+        //environment.jersey().
+       environment.jersey().register(VehicleResource.class);
+       environment.jersey().register(ConsignerResource.class);
+       environment.jersey().register(OwnerResource.class);
+       environment.jersey().register(RateResource.class);
+       environment.jersey().register(RouteResource.class);
+       environment.jersey().register(TripResource.class);
+       environment.jersey().register(TxnResource.class);
+       environment.jersey().register(RouteAndRateResource.class);
+       environment.jersey().register(OwnerConsignerResource.class);
+       environment.jersey().register(ImageResource.class);
+       environment.jersey().register(LoginResource.class);
+        environment.jersey().register(UserResource.class);
+        environment.jersey().register(VehicleDriverResource.class);
        environment.jersey().register(MultiPartFeature.class);
        environment.jersey().register(fileUploadService);
-       environment.jersey().register(billingResource);
-        environment.jersey().register(vehicleLocationResource);
+       environment.jersey().register(BillingResource.class);
+        environment.jersey().register(VehicleLocationResource.class);
 
 
       // environment.servlets().addFilter("Custom-Filter", ResponseFilter.class)

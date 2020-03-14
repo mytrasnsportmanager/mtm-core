@@ -34,15 +34,35 @@ public class UserDao extends AbstractDao{
     public Status addUser(User user)
     {
         Status status = new Status();
+        boolean wasProvisionallyRegisteredByOwner = false;
         List<Object> userDBRecords = this.getRecords("contact = "+user.getContact());
         if(userDBRecords.size()!=0)
         {
-            status.setReturnCode(1);
-            status.setMessage("USER_EXISTS");
-            System.out.println("User already exists");
-            return status;
+            if(userDBRecords.size()==1)
+            {
+                User userDBRecord = (User)userDBRecords.get(0);
+                if(userDBRecord.getRegistered_by()==null || !userDBRecord.getRegistered_by().equalsIgnoreCase("OWNER"))
+                {
+                    status.setReturnCode(1);
+                    status.setMessage("USER_EXISTS");
+                    System.out.println("User already exists");
+                    return status;
+                }
+                else if(userDBRecord.getRegistered_by().equalsIgnoreCase("OWNER"))
+                {
+                    user.setRegistered_by("SELF");
+                    user.setUserid(userDBRecord.getUserid());
+                    wasProvisionallyRegisteredByOwner = true;
+                }
+            }
+
         }
-        if(!isValidFirebaseUser(user))
+        else if(userDBRecords.size()==0 && user.getRegistered_by()==null)
+        {
+            user.setRegistered_by("SELF");
+        }
+
+        if((user.getRegistered_by()==null || !user.getRegistered_by().equalsIgnoreCase("OWNER")) && !isValidFirebaseUser(user))
         {
             status.setReturnCode(1);
             status.setMessage("User not found");
@@ -78,14 +98,25 @@ public class UserDao extends AbstractDao{
 
 
         }
-        user.setUserid(insertedId);
         String hashedPhrase = DigestUtils.sha1Hex(user.getPassphrase());
         user.setPassphrase(hashedPhrase);
-        insert(user);
-        status.setReturnCode(0);
-        status.setInsertedId(insertedId);
-        status.setMessage("SUCCESS");
-        return status;
+
+        if(wasProvisionallyRegisteredByOwner)
+        {
+            patch(user);
+            status.setReturnCode(0);
+            status.setInsertedId(user.getUserid());
+            status.setMessage("SUCCESS");
+            return status;
+        }
+        else {
+            user.setUserid(insertedId);
+            insert(user);
+            status.setReturnCode(0);
+            status.setInsertedId(insertedId);
+            status.setMessage("SUCCESS");
+            return status;
+        }
 
 
     }

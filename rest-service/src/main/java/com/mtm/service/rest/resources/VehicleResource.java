@@ -4,6 +4,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
 import com.mtm.beans.RateType;
 import com.mtm.beans.Status;
+import com.mtm.beans.UserType;
 import com.mtm.beans.dto.*;
 import com.mtm.dao.*;
 import io.dropwizard.jersey.PATCH;
@@ -43,6 +44,20 @@ public class VehicleResource extends AbstractRestResource {
     public Object createVehicle(Vehicle vehicle)
 
     {
+        if(vehicle.getDriverid()==0)
+        {
+            /* Create a provisional driver who can later register and will be associated with this id */
+            UserDao userDao = new UserDao();
+            User user = new User();
+            user.setContact(vehicle.getDriver_contact());
+            user.setName(vehicle.getDriver_name());
+            user.setUsertype(UserType.DRIVER.toString());
+            user.setRegistered_by("OWNER");
+            long driverid = userDao.addUser(user).getInsertedId();
+            vehicle.setDriverid(driverid);
+
+            //vehicleDriver.setName(vehicle.set);
+        }
 
         Status status =  (Status)create(vehicle);
         long vehicleid = status.getInsertedId();

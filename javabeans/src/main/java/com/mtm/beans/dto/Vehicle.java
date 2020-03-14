@@ -91,6 +91,9 @@ public class Vehicle extends Record {
         if(image_url!=null)
         this.image_url = image_url;
     }
+
+
+
     private String image_url ="default.jpg";
     private int model_num;
 
@@ -100,5 +103,24 @@ public class Vehicle extends Record {
     private String registration_num;
     private long ownerid;
     private long vehicleid;
+
+    public String getDriver_name() {
+        return driver_name;
+    }
+
+    public void setDriver_name(String driver_name) {
+        this.driver_name = driver_name;
+    }
+
+    public long getDriver_contact() {
+        return driver_contact;
+    }
+
+    public void setDriver_contact(long driver_contact) {
+        this.driver_contact = driver_contact;
+    }
+
+    private String driver_name;
+    private long driver_contact;
 
 }

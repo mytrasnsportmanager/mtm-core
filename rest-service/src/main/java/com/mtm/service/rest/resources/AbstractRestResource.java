@@ -4,13 +4,20 @@ import com.google.common.base.Optional;
 import com.mtm.beans.Status;
 import com.mtm.beans.dto.Record;
 import com.mtm.dao.Dao;
+import com.mtm.service.rest.RestResourceType;
+import com.mtm.service.rest.auth.AuthorizationHandler;
 import com.mtm.service.rest.utils.PaginationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +34,15 @@ public abstract class AbstractRestResource  implements RestResource {
     private  String paginationViewEntityIdColumn="vehicleid";
     private  String paginationViewOrderColumn="startTime";
     private  List<String> paginationSelectColumns = new ArrayList<String>();
+    protected AuthorizationHandler authorizationHandler;
+    @Context
+    protected HttpServletRequest req;
+    @Context
+    protected HttpServletResponse res;
+    @Context
+    protected ResourceInfo resourceInfo;
+    @Context
+    protected UriInfo uriInfo;
 
     public String getPaginationViewName() {
         return paginationViewName;
@@ -69,13 +85,25 @@ public abstract class AbstractRestResource  implements RestResource {
     }
 
 
-
-
-
-
     public AbstractRestResource(Dao dao)
     {
+        this(dao,null);
+    }
+
+
+
+    public AbstractRestResource(Dao dao, AuthorizationHandler authorizationHandlerParam)
+    {
         this.dao = dao;
+        this.authorizationHandler  = authorizationHandlerParam;
+        if(authorizationHandler!=null) {
+            authorizationHandler.setReq(req);
+            authorizationHandler.setRes(res);
+            authorizationHandler.setResourcePath(uriInfo.getPath());
+            authorizationHandler.setHttpMethodName(req.getMethod());
+            authorizationHandler.setResourceInfo(resourceInfo);
+        }
+
     }
 
 
@@ -162,6 +190,65 @@ public abstract class AbstractRestResource  implements RestResource {
         }
     }*/
 
+    public Optional<String> getWhereClause() {
+        return whereClause;
+    }
 
+    public void setWhereClause(Optional<String> whereClause) {
+        this.whereClause = whereClause;
+    }
+
+    public Optional<String> getMin() {
+        return min;
+    }
+
+    public void setMin(Optional<String> min) {
+        this.min = min;
+    }
+
+    public Optional<String> getMax() {
+        return max;
+    }
+
+    public void setMax(Optional<String> max) {
+        this.max = max;
+    }
+
+    public Optional<String> getRecordsPerPage() {
+        return recordsPerPage;
+    }
+
+    public void setRecordsPerPage(Optional<String> recordsPerPage) {
+        this.recordsPerPage = recordsPerPage;
+    }
+
+    public Optional<String> getTripId() {
+        return tripId;
+    }
+
+    public void setTripId(Optional<String> tripId) {
+        this.tripId = tripId;
+    }
+
+    protected @QueryParam("where") Optional<String> whereClause;
+    protected @QueryParam("min") Optional<String> min;
+    protected @QueryParam("max") Optional<String> max;
+    protected @QueryParam("recordsPerPage") Optional<String> recordsPerPage;
+    protected @PathParam("tripid") Optional<String> tripId;
+
+    public  AuthorizationHandler getAuthorizationHandler()
+    {
+        return authorizationHandler;
+    };
+
+    public RestResourceType getRestResourceType() {
+        return restResourceType;
+    }
+
+    public void setRestResourceType(RestResourceType restResourceType) {
+        this.restResourceType = restResourceType;
+    }
+
+    protected RestResourceType restResourceType;
 
 }

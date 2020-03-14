@@ -2,9 +2,12 @@ package com.mtm.service.rest.resources;
 
 import com.google.common.base.Optional;
 import com.mtm.beans.Status;
+import com.mtm.beans.UserSession;
 import com.mtm.beans.UserType;
+import com.mtm.beans.dto.OwnerConsigner;
 import com.mtm.beans.dto.TripDetail;
 import com.mtm.beans.dto.User;
+import com.mtm.beans.dto.Vehicle;
 import com.mtm.dao.*;
 import org.apache.commons.codec.digest.DigestUtils;
 
@@ -30,6 +33,7 @@ public class LoginResource extends AbstractRestResource {
     private static LoginDao loginDao = new LoginDao();
     private static UserDao userDao = new UserDao();
 
+
     public LoginResource() {
         super(loginDao);
     }
@@ -40,8 +44,10 @@ public class LoginResource extends AbstractRestResource {
     public Object login() {
         Status status = new Status();
         HttpSession session= req.getSession(true);
-        session.setAttribute("userid","1");
-        session.setAttribute("type","OWNER");
+        UserSession userSession = new UserSession();
+        userSession.setId(1);
+        userSession.setUserType(UserType.OWNER);
+        session.setAttribute("user_session",userSession);
         res.setHeader("userid","1");
         status.setReturnCode(0);
         status.setMessage("SUCCESS");
@@ -69,8 +75,9 @@ public class LoginResource extends AbstractRestResource {
 
         {
             HttpSession session= req.getSession(true);
-            session.setAttribute("userid",user.getUserid());
-            session.setAttribute("type",user.getUsertype());
+
+            UserSession userSession = populateSession(user.getUserid(),UserType.valueOf(user.getUsertype()));
+            session.setAttribute("user_session",userSession);
             res.setHeader("userid",""+user.getUserid());
             status.setReturnCode(0);
             status.setMessage("SUCCESS");
@@ -95,7 +102,7 @@ public class LoginResource extends AbstractRestResource {
     public Object getUserByContact(@PathParam("contact") Optional<String> contactNumber)
     {
         long contact = Long.parseLong(contactNumber.get());
-        String userQuery = "select usertype, userid from user where contact = "+contact;
+        String userQuery = "select usertype, userid from user where registered_by <> 'OWNER' and contact = "+contact;
         List<List<String>> records = loginDao.executeQuery(userQuery);
         User user = new User(UserType.NONE);
         if(records!=null && records.size() >0 )
@@ -123,4 +130,83 @@ public class LoginResource extends AbstractRestResource {
     public List<User> getPaginatedRecords(@QueryParam("where") Optional<String> whereClause, @QueryParam("min") Optional<String> min, @QueryParam("max") Optional<String> max, @QueryParam("recordsPerPage") Optional<String> recordsPerPage) {
         return null;
     }
+
+    private UserSession populateSession(long userid, UserType userType)
+    {
+        UserSession userSession = new UserSession();
+        userSession.setId(userid);
+        userSession.setUserType(userType);
+        switch (userType)
+        {
+
+            case OWNER:
+                populateForOwner(userSession,userid);
+                break;
+            case CONSIGNER:
+                populateForConsigner(userSession,userid);
+                break;
+            case DRIVER:
+                populateForDriver(userSession,userid);
+                break;
+            case NONE:
+                break;
+        }
+        return userSession;
+    }
+
+
+    private void populateForOwner(UserSession userSession , long ownerid)
+    {
+        VehicleDao vehicleDao = new VehicleDao();
+        OwnerConsignerDao ownerConsignerDao = new OwnerConsignerDao();
+        List<Object> vehicleList = vehicleDao.getRecords(" ownerid = "+ownerid);
+        List<Object> associatedConsigners = ownerConsignerDao.getRecords(" ownerid = "+ownerid);
+
+        for(Object obj : vehicleList)
+        {
+            userSession.getVehicleIdList().add(((Vehicle)obj).getVehicleid());
+            userSession.getAssociatedDriversList().add(((Vehicle)obj).getDriverid());
+        }
+
+        for(Object obj : associatedConsigners)
+        {
+            userSession.getAssociatedConsigersList().add(((OwnerConsigner)obj).getConsignerid());
+        }
+
+    }
+
+    private void populateForConsigner(UserSession userSession , long consignerid)
+    {
+        VehicleDao vehicleDao = new VehicleDao();
+        OwnerConsignerDao ownerConsignerDao = new OwnerConsignerDao();
+        String consignerAssociatedVehicles ="select distinct vehicleid from trip where routeid in (select distinct routeid from route where consignerid = "+consignerid+")";
+        List<List<String>> vehicleListRecords = vehicleDao.executeQuery(consignerAssociatedVehicles);
+        List<Object> associatedOwners = ownerConsignerDao.getRecords(" consignerid = "+consignerid);
+
+        for(List<String> vehicleIdRecord : vehicleListRecords)
+        {
+            userSession.getVehicleIdList().add(Long.parseLong(vehicleIdRecord.get(0)));
+        }
+
+        for(Object obj : associatedOwners)
+        {
+            userSession.getAssociatedConsigersList().add(((OwnerConsigner)obj).getOwnerid());
+        }
+
+    }
+
+    private void populateForDriver(UserSession userSession , long driverid)
+    {
+        VehicleDao vehicleDao = new VehicleDao();
+        List<Object> vehicleList = vehicleDao.getRecords(" driverid = "+driverid);
+        for(Object obj : vehicleList)
+        {
+            userSession.getVehicleIdList().add(((Vehicle)obj).getVehicleid());
+            userSession.getAssociatedOwnerList().add(((Vehicle)obj).getOwnerid());
+        }
+    }
+
+
+
+
 }

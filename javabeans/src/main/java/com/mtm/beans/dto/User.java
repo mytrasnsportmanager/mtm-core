@@ -81,6 +81,15 @@ public class User extends Record {
     private long contact;
     private String passphrase;
     private String externaluid;
+    private String registered_by;
+
+    public String getRegistered_by() {
+        return registered_by;
+    }
+
+    public void setRegistered_by(String registered_by) {
+        this.registered_by = registered_by;
+    }
 
     public String getExternaluid() {
         return externaluid;
