@@ -15,6 +15,7 @@
         <module>dao</module>
         <module>pdfgenerator</module>
         <module>auth</module>
+        <module>notification</module>
     </modules>
 
 

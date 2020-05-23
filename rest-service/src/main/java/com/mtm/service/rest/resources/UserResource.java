@@ -1,11 +1,15 @@
 package com.mtm.service.rest.resources;
 
 import com.google.common.base.Optional;
+import com.mtm.beans.Status;
+import com.mtm.beans.dto.Owner;
 import com.mtm.beans.dto.Trip;
 import com.mtm.beans.dto.TripDetail;
 import com.mtm.beans.dto.User;
 import com.mtm.dao.TripDao;
 import com.mtm.dao.UserDao;
+import io.dropwizard.jersey.PATCH;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -25,6 +29,20 @@ public class UserResource extends  AbstractRestResource {
         super(dao);
 
     }
+
+    @PATCH
+    @Path("/users")
+    public Object updateUser(User record)
+
+    {
+        record.setPassphrase(DigestUtils.sha1Hex(record.getPassphrase()));
+        if(dao.patch(record,"usertype='"+record.getUsertype()+"'")==1)
+            return new Status("SUCCESS",0,0);
+        else
+            return new Status("FAILED",1,0);
+    }
+
+
 
     @POST
     @Path("/users")

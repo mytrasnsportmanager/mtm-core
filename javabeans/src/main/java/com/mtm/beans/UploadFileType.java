@@ -8,7 +8,8 @@ import java.util.List;
  */
 public enum UploadFileType {
     OWNER_PROFILE_PIC("owner_profile_pic","owners"), CHALLAN_PIC("challan_pic","challans"), CONSIGNER_PROFILE_PIC
-            ("consigner_profile_pic","consigners"), VEHICLE_PIC("vehicle_pic", "vehicles"), DRIVER_PIC("driver_pic","drivers");
+            ("consigner_profile_pic","consigners"), VEHICLE_PIC("vehicle_pic", "vehicles"), DRIVER_PIC("driver_pic","drivers"),
+    VEHICLE_GENERAL_DOCUMENT("vehicle_general_document","vehicledocuments");
 
 
     UploadFileType(String param, String directoryName)

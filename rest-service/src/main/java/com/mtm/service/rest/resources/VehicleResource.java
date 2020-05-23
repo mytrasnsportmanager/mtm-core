@@ -201,7 +201,7 @@ public class VehicleResource extends AbstractRestResource {
         long vehicleId = Long.parseLong(vehicleIdStr.get());
         long consignerid = Long.parseLong(consignerIdStr.get());
         try {
-            return billingDao.downloadStatement(vehicleId,consignerid,true);
+            return billingDao.downloadStatement(vehicleId,consignerid,true, null, null);
         } catch (ParseException e) {
             e.printStackTrace();
         }

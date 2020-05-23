@@ -1,5 +1,6 @@
 package com.mtm.beans;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,9 +50,9 @@ public class UserSession {
 
     private long id;
     private UserType userType;
-    private List<Long> vehicleIdList;
-    private List<Long> associatedDriversList;
-    private List<Long> associatedConsigersList;
+    private List<Long> vehicleIdList = new ArrayList();
+    private List<Long> associatedDriversList= new ArrayList();
+    private List<Long> associatedConsigersList= new ArrayList();
 
     public List<Long> getAssociatedOwnerList() {
         return associatedOwnerList;
@@ -61,7 +62,7 @@ public class UserSession {
         this.associatedOwnerList = associatedOwnerList;
     }
 
-    private List<Long> associatedOwnerList;
+    private List<Long> associatedOwnerList = new ArrayList<>();
 
 
 }

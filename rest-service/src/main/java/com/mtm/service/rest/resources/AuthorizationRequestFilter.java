@@ -2,14 +2,12 @@ package com.mtm.service.rest.resources;
 
 import com.mtm.beans.UserSession;
 import com.mtm.service.rest.auth.AuthorizationHandler;
-import com.mtm.service.rest.auth.Authorizer;
+import com.mtm.service.rest.auth.CanAuthorize;
 import org.apache.commons.io.IOUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.servlet.http.Part;
-import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -19,9 +17,7 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.ext.Provider;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Admin on 10/11/2019.
@@ -115,9 +111,9 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
 
         Method method = resourceInfo.getResourceMethod();
         String jsonBody = null;
-        if(!method.isAnnotationPresent(Authorizer.class))
+       /* if(!method.isAnnotationPresent(CanAuthorize.class))
             return true;
-        Class authoirzationHandlerClass = method.getAnnotation(Authorizer.class).value();
+        Class authoirzationHandlerClass = method.getAnnotation(CanAuthorize.class).value();
 
         try {
             AuthorizationHandler authorizationHandler = (AuthorizationHandler)authoirzationHandlerClass.newInstance();
@@ -138,7 +134,7 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
         } catch (Exception e) {
             e.printStackTrace();
             return false;
-        }
+        }*/
 
         return true;
 

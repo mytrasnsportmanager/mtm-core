@@ -7,17 +7,20 @@ import com.mtm.beans.dto.Trip;
 import com.mtm.beans.dto.TripDetail;
 import com.mtm.dao.TripDao;
 import com.mtm.service.rest.RestResourceType;
-import com.mtm.service.rest.auth.AllowAll;
-import com.mtm.service.rest.auth.AuthorizationHandler;
-import com.mtm.service.rest.auth.Authorizer;
+import com.mtm.service.rest.auth.AuthorizationRule;
 import com.mtm.service.rest.auth.TripAuthorizationHandler;
 import com.mtm.service.rest.validation.AuthorizationCheck;
 import io.dropwizard.jersey.PATCH;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.UriInfo;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -29,7 +32,7 @@ import java.util.List;
  */
 
 @Produces(MediaType.APPLICATION_JSON)
-@AuthorizationCheck
+
 public class TripResource extends AbstractRestResource{
     private static TripDao dao = new TripDao();
     private static final String PAGINATION_VIEW_NAME = "trip_detailed";
@@ -39,6 +42,7 @@ public class TripResource extends AbstractRestResource{
     private static final List<String> PAGINATION_SELECT_COLUMNS = new ArrayList<String>();
     private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private TripAuthorizationHandler tripAuthorizationHandler = new TripAuthorizationHandler();
+
 
     public void setTrip(Trip trip) {
         this.trip = trip;
@@ -86,8 +90,10 @@ public class TripResource extends AbstractRestResource{
     }
 
     @POST
+
     @Path("/trips")
-    public Object createTrip(Trip tripParam)
+    @AuthorizationCheck(AuthorizationRule.TRIP_CANNOT_BE_ADDED_BY_NON_OWNER)
+    public Object createTrip(@Context HttpServletRequest req, @Context HttpServletResponse res, @Context ResourceInfo resourceInfo, @Context UriInfo uriInfo,  Trip tripParam)
 
     {
         // Add startTime
@@ -99,7 +105,7 @@ public class TripResource extends AbstractRestResource{
          return create(trip);
     }
 
-    @Authorizer(TripAuthorizationHandler.class)
+
     @PATCH
     @Path("/trips")
     public Object patchVehicleRecord(Trip tripParam)
@@ -112,7 +118,7 @@ public class TripResource extends AbstractRestResource{
             return new Status("FAILED",1,0);
     }
 
-    @Authorizer(AllowAll.class)
+
     @GET
     @Path("/trips")
     public Object getTrips()

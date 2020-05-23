@@ -14,6 +14,7 @@ import org.glassfish.jersey.server.ServerProperties;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -35,14 +36,58 @@ public abstract class AbstractRestResource  implements RestResource {
     private  String paginationViewOrderColumn="startTime";
     private  List<String> paginationSelectColumns = new ArrayList<String>();
     protected AuthorizationHandler authorizationHandler;
+
+    public HttpServletRequest getReq() {
+        return req;
+    }
+
+    public HttpServletResponse getRes() {
+        return res;
+    }
+
+    public ResourceInfo getResourceInfo() {
+        return resourceInfo;
+    }
+
+    public UriInfo getUriInfo() {
+        return uriInfo;
+    }
+
+    public void setReq(HttpServletRequest req) {
+        this.req = req;
+    }
+
+    public void setRes(HttpServletResponse res) {
+        this.res = res;
+    }
+
+    public void setResourceInfo(ResourceInfo resourceInfo) {
+        this.resourceInfo = resourceInfo;
+    }
+
+    public void setUriInfo(UriInfo uriInfo) {
+        this.uriInfo = uriInfo;
+    }
+
     @Context
-    protected HttpServletRequest req;
+    private HttpServletRequest req;
     @Context
-    protected HttpServletResponse res;
+    private HttpServletResponse res;
     @Context
-    protected ResourceInfo resourceInfo;
+    private ResourceInfo resourceInfo;
     @Context
-    protected UriInfo uriInfo;
+    private UriInfo uriInfo;
+
+    public ContainerRequestContext getContainerRequest() {
+        return containerRequest;
+    }
+
+    public void setContainerRequest(ContainerRequestContext containerRequest) {
+        this.containerRequest = containerRequest;
+    }
+
+    @Context
+    private ContainerRequestContext containerRequest;
 
     public String getPaginationViewName() {
         return paginationViewName;
@@ -91,19 +136,10 @@ public abstract class AbstractRestResource  implements RestResource {
     }
 
 
-
     public AbstractRestResource(Dao dao, AuthorizationHandler authorizationHandlerParam)
     {
         this.dao = dao;
         this.authorizationHandler  = authorizationHandlerParam;
-        if(authorizationHandler!=null) {
-            authorizationHandler.setReq(req);
-            authorizationHandler.setRes(res);
-            authorizationHandler.setResourcePath(uriInfo.getPath());
-            authorizationHandler.setHttpMethodName(req.getMethod());
-            authorizationHandler.setResourceInfo(resourceInfo);
-        }
-
     }
 
 

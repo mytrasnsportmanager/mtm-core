@@ -10,9 +10,9 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Authorizer {
+public @interface CanAuthorize {
 
-    public Class value() default AllowAll.class;
+    public AuthorizationRule value() default AuthorizationRule.ALLOW_ALL;
 
 
 }

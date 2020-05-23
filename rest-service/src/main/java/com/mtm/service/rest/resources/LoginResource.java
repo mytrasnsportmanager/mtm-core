@@ -55,6 +55,18 @@ public class LoginResource extends AbstractRestResource {
 
     }
 
+    @POST
+    @Path("/logout")
+    public Object logout() {
+        HttpSession session= req.getSession();
+        if(session!=null)
+            session.invalidate();
+        Status status = new Status();
+        status.setMessage("SUCCESS");
+        status.setReturnCode(0);
+        return status;
+    }
+
 
         @POST
     @Path("/login")
@@ -76,10 +88,15 @@ public class LoginResource extends AbstractRestResource {
         {
             HttpSession session= req.getSession(true);
 
-            UserSession userSession = populateSession(user.getUserid(),UserType.valueOf(user.getUsertype()));
+            UserSession userSession = populateSession(userDBRecord.getUserid(),UserType.valueOf(userDBRecord.getUsertype()));
             session.setAttribute("user_session",userSession);
             res.setHeader("userid",""+user.getUserid());
             status.setReturnCode(0);
+            // Update device_id
+            userDBRecord.setDevice_id(user.getDevice_id());
+            userDao.patch(userDBRecord,"usertype='"+userDBRecord.getUsertype()+"'");
+
+
             status.setMessage("SUCCESS");
         }
         else

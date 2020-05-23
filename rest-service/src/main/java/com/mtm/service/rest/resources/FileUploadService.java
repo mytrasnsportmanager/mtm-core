@@ -5,9 +5,11 @@ import com.mtm.beans.UploadFileType;
 import com.mtm.beans.dto.*;
 import com.mtm.dao.*;
 import com.mtm.dao.beans.DataType;
+import com.mtm.notification.FCMNotificationSender;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import javax.imageio.ImageIO;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -16,10 +18,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by Admin on 4/20/2019.
@@ -29,6 +30,7 @@ import java.util.Random;
 public class FileUploadService {
     /** The path to the folder where we want to store the uploaded files */
     private static final String UPLOAD_FOLDER = "/home/mtmuser/proj/deployed/mtm/resources/images/";
+    //private static final String UPLOAD_FOLDER = "C:/prj/mtm/imgs/";
     private static final String webserverAddress = System.getProperty("webserverAddress");
     private static final String baseURL = "http://"+webserverAddress+":8080/mtm/resources/images";
     private static final OwnerDao ownerDao = new OwnerDao();
@@ -112,6 +114,14 @@ public class FileUploadService {
      */
     private void saveToFile(InputStream inStream, String target)
             throws IOException {
+
+        BufferedImage bufferedImage = ImageIO.read(inStream);
+        if(bufferedImage!=null) {
+            saveAsPng(bufferedImage, target);
+            return;
+
+        }
+
         OutputStream out = null;
         int read = 0;
         byte[] bytes = new byte[1024];
@@ -122,6 +132,13 @@ public class FileUploadService {
         out.flush();
         out.close();
     }
+
+    private void saveAsPng(BufferedImage bufferedImage, String target) throws IOException {
+        //BufferedImage bufferedImage = ImageIO.read(inStream);
+        ImageIO.write(bufferedImage, "png", new File(target));
+
+    }
+
     /**
      * Creates a folder to desired location if it not already exists
      *
@@ -190,6 +207,39 @@ public class FileUploadService {
                 return baseURL + resourcePath;
 
             }
+
+            case VEHICLE_GENERAL_DOCUMENT: {
+                String resourcePath = "/vehiclegeneraldocument/" + id+"?rand="+randomNumber;
+                // Send notification to owner
+                List<List<String>> records = vehicleDao.executeQuery("select device_id from user where usertype = 'OWNER' and userid in (select ownerid from vehicle where vehicleid = "+id+")");
+                Vehicle vehicle = (Vehicle) vehicleDao.getConvertedRecords(" vehicleid = "+id).get(0);
+                String device_id = null;
+                if(records.size() > 0)
+                device_id = records.get(0).get(0);
+                Notification notification = new Notification();
+                notification.setImage_url(baseURL+resourcePath);
+                notification.setMessagetext(" A document has been uploaded by "+vehicle.getDriver_name() +" for "+vehicle.getRegistration_num() +", check the messge to view the document");
+                notification.setNotificationtime(new Date());
+                notification.setMessagetitle("Document Uploaded by Driver");
+                notification.setUserid(vehicle.getOwnerid());
+                notification.setUsertype("OWNER");
+                notification.setNotification_type("NOTIFICATION_CHALLAN_UPLOAD");
+                notification.setUser_device_id(device_id);
+
+                DataNotification dataNotification = new DataNotification();
+                dataNotification.setData(notification);
+                dataNotification.setToken(device_id);
+
+                Message message = new Message();
+                message.setMessage(dataNotification);
+
+                FCMNotificationSender fcmNotificationSender = new FCMNotificationSender();
+
+               fcmNotificationSender.send(message);
+                return baseURL + resourcePath;
+
+            }
+
 
 
         }

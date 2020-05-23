@@ -10,6 +10,7 @@ import com.mtm.service.rest.RestResourceType;
 import com.mtm.service.rest.resources.AbstractRestResource;
 import com.mtm.service.rest.resources.TripResource;
 import com.mtm.service.rest.validation.AuthorizationCheck;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +21,7 @@ import javax.validation.ConstraintValidatorContext;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 
 /**
@@ -29,45 +31,19 @@ public class TripAuthorizationHandler extends AbstractAuthorizationHandler {
 
     VehicleDao vehicleDao = new VehicleDao();
 
-    public boolean isAuthorized(AbstractRestResource abstractRestResource) {
-
-        Trip postedTrip =null;
-        HttpSession session = req.getSession();
-        UserSession userSession = (UserSession)session.getAttribute("user_session");
-        UserType userType = userSession.getUserType();
-        TripResource tripResource = (TripResource)abstractRestResource;
-
-     postedTrip = tripResource.getTrip();
+    @CanAuthorize(AuthorizationRule.TRIP_CANNOT_BE_ADDED_BY_NON_OWNER)
+    public boolean isAuthorized(HttpServletRequest req, HttpServletResponse res, ResourceInfo resourceInfo, UriInfo uriInfo , Trip trip) {
 
 
-        if(resourcePath.equalsIgnoreCase("mtm/trips") && httpMethodName.equalsIgnoreCase("GET"))
-       {
-           if(userType==UserType.DRIVER)
-               return false;
-           return true;
-       }
-        if(resourcePath.equalsIgnoreCase("mtm/trips") && (httpMethodName.equalsIgnoreCase("POST")))
-        {
-            if(userType==UserType.CONSIGNER || userType==UserType.DRIVER)
-                return false;
+        super.initialize(req,res,resourceInfo,uriInfo);
+        Trip postedTrip =trip;
 
-            // Check if user is the owner for the vehicle
+             // Check if user is the owner for the vehicle
            // String query = "select * from vehicle where vehicleid ="+postedTrip.getVehicleid()+" and ownerid ="+userid;
             if(!userSession.getVehicleIdList().contains(postedTrip.getVehicleid()))
                 return false;
             return true;
 
-
-        }
-
-        if(resourcePath.matches("mtm/trips/\\d*") && (httpMethodName.equalsIgnoreCase("PUT")))
-        {
-
-        }
-
-
-
-        return false;
     }
 
 

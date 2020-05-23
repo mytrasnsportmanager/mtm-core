@@ -7,10 +7,12 @@ import java.sql.DriverManager;
  * Created by Admin on 2/24/2019.
  */
 public class MySqlDatabase implements Database {
+    // DB Host 34.66.81.100
+
     public Connection getConnection() throws Exception {
         Class.forName("com.mysql.jdbc.Driver");
         Connection conn = null;
-        conn = DriverManager.getConnection("jdbc:mysql://35.200.168.251:3306/mtm","mtmwebuser", "mtm@123");
+        conn = DriverManager.getConnection("jdbc:mysql://34.66.81.100:3306/mtm","mtmwebuser", "mtm@123");
         return conn;
     }
 }

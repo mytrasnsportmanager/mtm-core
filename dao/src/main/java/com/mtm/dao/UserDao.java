@@ -6,6 +6,7 @@ import com.mtm.beans.Status;
 import com.mtm.beans.UserType;
 import com.mtm.beans.dto.*;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -50,9 +51,44 @@ public class UserDao extends AbstractDao{
                 }
                 else if(userDBRecord.getRegistered_by().equalsIgnoreCase("OWNER"))
                 {
-                    user.setRegistered_by("SELF");
-                    user.setUserid(userDBRecord.getUserid());
-                    wasProvisionallyRegisteredByOwner = true;
+                    if(userDBRecord.getUsertype().equalsIgnoreCase(user.getUsertype())) {
+                        user.setRegistered_by("SELF");
+                        user.setUserid(userDBRecord.getUserid());
+                        wasProvisionallyRegisteredByOwner = true;
+                    }
+                    else
+                    {
+                        /* The user wants to register as a different type from what someone has provisionally registered him
+                        If the provisionally registered user in not involved in any trip, txn , allow the user to do so
+                        else throw error
+                        */
+                        if(userDBRecord.getUsertype().equalsIgnoreCase("CONSIGNER"))
+                        {
+                            long consignerid = userDBRecord.getUserid();
+                            BillingDao billingDao = new BillingDao();
+                            String pendingSettlementMessage = billingDao.getPendingSettlementMeessage(consignerid);
+                            if(StringUtils.isNotEmpty(pendingSettlementMessage))
+                            {
+                                status.setReturnCode(99);
+                                status.setMessage(pendingSettlementMessage);
+                                return status;
+                            }
+                            else
+                            {
+                                // This consignerid didn't have any accountabiliy, allow him to switch role
+                                OwnerConsignerDao ownerConsignerDao = new OwnerConsignerDao();
+                                ownerConsignerDao.delete(" consignerid "+consignerid);
+                                consignerDao.delete(" consignerid "+consignerid);
+                                delete(" userid = "+consignerid+" and usertype = 'CONSIGNER'");
+                                user.setRegistered_by("SELF");
+                            }
+
+
+                        }
+
+
+
+                    }
                 }
             }
 
@@ -80,7 +116,7 @@ public class UserDao extends AbstractDao{
             owner.setContact(user.getContact());
             insertedId =  ownerDao.insert(owner);
         }
-        else if (user.getUsertype().equalsIgnoreCase(UserType.DRIVER.toString()))
+        else if (user.getUsertype().equalsIgnoreCase(UserType.DRIVER.toString()) && !wasProvisionallyRegisteredByOwner)
         {
             VehicleDriver driver = new VehicleDriver();
             driver.setName(user.getName());
@@ -88,7 +124,7 @@ public class UserDao extends AbstractDao{
             driver.setContact(user.getContact());
             insertedId =  driverDao.insert(driver);
         }
-        else if (user.getUsertype().equalsIgnoreCase(UserType.CONSIGNER.toString()))
+        else if (user.getUsertype().equalsIgnoreCase(UserType.CONSIGNER.toString()) && !wasProvisionallyRegisteredByOwner)
         {
             Consigner consigner = new Consigner();
             consigner.setName(user.getName());
@@ -98,12 +134,14 @@ public class UserDao extends AbstractDao{
 
 
         }
-        String hashedPhrase = DigestUtils.sha1Hex(user.getPassphrase());
-        user.setPassphrase(hashedPhrase);
+        if(user.getPassphrase()!=null) {
+            String hashedPhrase = DigestUtils.sha1Hex(user.getPassphrase());
+            user.setPassphrase(hashedPhrase);
+        }
 
         if(wasProvisionallyRegisteredByOwner)
         {
-            patch(user);
+            patch(user, "usertype='"+user.getUsertype()+"'");
             status.setReturnCode(0);
             status.setInsertedId(user.getUserid());
             status.setMessage("SUCCESS");

@@ -2,6 +2,8 @@ package com.mtm.service.rest;
 
 import com.mtm.beans.dto.Trip;
 import com.mtm.dao.BillingDao;
+import com.mtm.scheduled.BillingService;
+import com.mtm.service.rest.auth.AbstractAuthorizer;
 import com.mtm.service.rest.config.RestConfiguration;
 import com.mtm.service.rest.resources.*;
 import io.dropwizard.Application;
@@ -51,23 +53,33 @@ public class LauncherApplication extends Application<RestConfiguration> {
 
         environment.jersey().register(authorizationRequestFilter);
         //environment.jersey().
+        environment.jersey().register(AbstractRestResource.class);
        environment.jersey().register(VehicleResource.class);
        environment.jersey().register(ConsignerResource.class);
        environment.jersey().register(OwnerResource.class);
        environment.jersey().register(RateResource.class);
        environment.jersey().register(RouteResource.class);
-       environment.jersey().register(TripResource.class);
+
        environment.jersey().register(TxnResource.class);
        environment.jersey().register(RouteAndRateResource.class);
        environment.jersey().register(OwnerConsignerResource.class);
        environment.jersey().register(ImageResource.class);
-       environment.jersey().register(LoginResource.class);
-        environment.jersey().register(UserResource.class);
+
         environment.jersey().register(VehicleDriverResource.class);
        environment.jersey().register(MultiPartFeature.class);
-       environment.jersey().register(fileUploadService);
+
        environment.jersey().register(BillingResource.class);
         environment.jersey().register(VehicleLocationResource.class);
+        environment.jersey().register(AbstractAuthorizer.class);
+
+        environment.jersey().register(LoginResource.class);
+        environment.jersey().register(UserResource.class);
+        environment.jersey().register(fileUploadService);
+        environment.jersey().register(TripResource.class);
+        environment.jersey().register(NotificationResource.class);
+
+        BillingService billingService = new BillingService();
+        billingService.startAsync();
 
 
       // environment.servlets().addFilter("Custom-Filter", ResponseFilter.class)

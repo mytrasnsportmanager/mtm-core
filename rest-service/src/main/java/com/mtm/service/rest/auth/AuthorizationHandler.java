@@ -13,11 +13,9 @@ import javax.ws.rs.container.ResourceInfo;
  * Created by Admin on 3/8/2020.
  */
 public interface AuthorizationHandler {
-    public boolean isAuthorized(AbstractRestResource restResource);
+    /*public boolean isAuthorized(Object... parameters);*/
     public void setReq(HttpServletRequest req) ;
     public void setRes(HttpServletResponse res);
     public void setResourceInfo(ResourceInfo resourceInfo) ;
-    public void setResourcePath(String resourcePath);
-    public void setHttpMethodName(String httpMethodName) ;
 
 }

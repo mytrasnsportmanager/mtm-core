@@ -41,6 +41,7 @@ public class OwnerConsignerResource extends AbstractRestResource {
             user.setUsertype(UserType.CONSIGNER.toString());
             user.setRegistered_by("OWNER");
             consignerid = userDao.addUser(user).getInsertedId()  ;
+            ownerConsigner.setConsignerid(consignerid);
             //consigner.
 
         }

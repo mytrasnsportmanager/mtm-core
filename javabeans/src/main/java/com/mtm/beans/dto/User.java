@@ -83,6 +83,16 @@ public class User extends Record {
     private String externaluid;
     private String registered_by;
 
+    public String getDevice_id() {
+        return device_id;
+    }
+
+    public void setDevice_id(String device_id) {
+        this.device_id = device_id;
+    }
+
+    private String device_id;
+
     public String getRegistered_by() {
         return registered_by;
     }
@@ -109,6 +119,12 @@ public class User extends Record {
     }
 
     private String image_url="default.jpg";
+
+    public String getPrimaryKeyColumn()
+    {
+        return "userid";
+    }
+
 
 
 }

@@ -17,28 +17,48 @@ import java.io.IOException;
 public class FirebaseUserUtil {
 
     private static  FirebaseApp firebaseApp;
+    private static GoogleCredentials googleCredentials;
 
     static
     {
         FileInputStream refreshToken = null;
         try {
-            refreshToken = new FileInputStream("/home/mtmuser/proj/deployed/mtm/proserviceaccoutkey.json");
+           // refreshToken = new FileInputStream("/home/mtmuser/proj/deployed/mtm/proserviceaccoutkey.json");
+            refreshToken = new FileInputStream("C:/prj/mtm/proserviceaccoutkey.json");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
         FirebaseOptions options = null;
         try {
+            googleCredentials= GoogleCredentials.fromStream(refreshToken).createScoped("https://www.googleapis.com/auth/firebase.messaging");
             options = new FirebaseOptions.Builder()
-                    .setCredentials(GoogleCredentials.fromStream(refreshToken))
+                    .setCredentials(googleCredentials).build();
                     //.setDatabaseUrl("https://<DATABASE_NAME>.firebaseio.com/")
-                    .build();
+                    //.build();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         firebaseApp = FirebaseApp.initializeApp(options);
     }
+
+    public synchronized static FirebaseApp getFirebaseApp()
+    {
+        return firebaseApp;
+    }
+
+    public static synchronized String getAccessToken()
+    {
+        if(googleCredentials.getAccessToken()==null)
+            try {
+                googleCredentials.refresh();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        return googleCredentials.getAccessToken().getTokenValue();
+    }
+
 
     public static void main(String[] args)
     {

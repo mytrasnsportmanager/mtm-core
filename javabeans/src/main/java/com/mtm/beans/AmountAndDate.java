@@ -22,6 +22,16 @@ public class AmountAndDate {
         this.amount = amount;
     }
 
+
+    public long getVehicleid() {
+        return vehicleid;
+    }
+
+    public void setVehicleid(long vehicleid) {
+        this.vehicleid = vehicleid;
+    }
+
     private Date date ;
     private double amount;
+    private long vehicleid;
 }

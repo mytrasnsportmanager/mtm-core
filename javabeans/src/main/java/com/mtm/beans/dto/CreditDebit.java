@@ -87,6 +87,16 @@ public class CreditDebit extends Record implements Serializable{
     private double amount;
     private String type;
 
+    public String getRegistration_num() {
+        return registration_num;
+    }
+
+    public void setRegistration_num(String registration_num) {
+        this.registration_num = registration_num;
+    }
+
+    private String registration_num;
+
 
     public long getVehicleid() {
         return vehicleid;

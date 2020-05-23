@@ -1,10 +1,18 @@
 package com.mtm.service.rest.auth;
 
+import com.mtm.beans.UserSession;
+import com.mtm.beans.UserType;
+import com.mtm.service.rest.resources.AbstractRestResource;
+import com.mtm.service.rest.resources.TripResource;
+import org.apache.commons.io.IOUtils;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 
 /**
  * Created by Admin on 3/14/2020.
@@ -44,21 +52,6 @@ public abstract class AbstractAuthorizationHandler implements AuthorizationHandl
         this.uriInfo = uriInfo;
     }
 
-    public String getResourcePath() {
-        return resourcePath;
-    }
-
-    public void setResourcePath(String resourcePath) {
-        this.resourcePath = resourcePath;
-    }
-
-    public String getHttpMethodName() {
-        return httpMethodName;
-    }
-
-    public void setHttpMethodName(String httpMethodName) {
-        this.httpMethodName = httpMethodName;
-    }
 
     protected HttpServletRequest req;
 
@@ -68,8 +61,27 @@ public abstract class AbstractAuthorizationHandler implements AuthorizationHandl
 
     protected UriInfo uriInfo;
 
-    protected String resourcePath;
     protected String httpMethodName;
+
+    protected  String resourcePath;
+
+    protected UserSession userSession;
+
+    protected UserType userType;
+
+    protected String jsonBody;
+
+    protected void initialize(HttpServletRequest req, HttpServletResponse res, ResourceInfo resourceInfo, UriInfo uriInfo)
+    {
+
+        HttpSession session = req.getSession();
+        userSession = (UserSession)session.getAttribute("user_session");
+        userType = userSession.getUserType();
+        resourcePath = uriInfo.getPath();
+        httpMethodName = req.getMethod();
+
+
+    }
 
 
 }

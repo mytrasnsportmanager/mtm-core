@@ -86,6 +86,7 @@ public class Trip extends Record implements Serializable{
     public void setEndtime(Date endTime) {
         if(endTime!=null ) this.endTime = endTime;
     }
+
     private long tripid               ;
     private long vehicleid            ;
 

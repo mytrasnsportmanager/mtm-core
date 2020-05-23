@@ -61,6 +61,19 @@ public class OwnerConsigner extends Record {
         this.billingday = billingday;
     }
 
+    @Override
+    public String toString() {
+        return "OwnerConsigner{" +
+                "image_url='" + image_url + '\'' +
+                ", consigner_name='" + consigner_name + '\'' +
+                ", is_company=" + is_company +
+                ", consigner_contact=" + consigner_contact +
+                ", billingday=" + billingday +
+                ", ownerid=" + ownerid +
+                ", consignerid=" + consignerid +
+                '}';
+    }
+
     public OwnerConsigner()
     {
 

@@ -61,8 +61,8 @@ public abstract class AbstractDao implements  Dao {
         {
             String setterMethodName = "set"+ column.getName().substring(0, 1).toUpperCase() + column.getName().substring(1);
             String getterMethodName = "get"+ column.getName().substring(0, 1).toUpperCase() + column.getName().substring(1);
-            System.out.println("Searching for "+setterMethodName + " and "+getterMethodName
-            +" column type"+column.getType());
+            /*System.out.println("Searching for "+setterMethodName + " and "+getterMethodName
+            +" column type"+column.getType());*/
 
             try {
                 Method setterMethod = recordClass.getMethod(setterMethodName,column.getType().getDataTypeClass());
@@ -206,7 +206,12 @@ public abstract class AbstractDao implements  Dao {
 
     }
 
-    public long patch(Record record) {
+    public long patch(Record record)
+    {
+        return patch(record, null);
+    }
+
+    public long patch(Record record, String whereClause) {
         StringBuffer patchQuery = new StringBuffer("update  "+tableName+" set ");
 
         List<String> updateCoulmnValueList = new ArrayList<>();
@@ -240,6 +245,9 @@ public abstract class AbstractDao implements  Dao {
                 idColumnValue = columnValue;
                 continue;
             }
+
+            if(columnValue==null)
+                continue;
 
 
             switch (column.getType())
@@ -283,6 +291,8 @@ public abstract class AbstractDao implements  Dao {
 
         patchQuery.append(Joiner.on(",").join(updateCoulmnValueList));
         patchQuery.append(" where "+idColumn + "="+idColumnValue);
+        if(StringUtils.isNotEmpty(whereClause))
+            patchQuery.append(" and "+whereClause);
         System.out.println("Patch Query >> "+patchQuery);
         try {
             connection =  database.getConnection();

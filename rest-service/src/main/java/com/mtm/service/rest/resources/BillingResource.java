@@ -1,6 +1,7 @@
 package com.mtm.service.rest.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.api.client.util.Joiner;
 import com.google.common.base.Optional;
 import com.mtm.beans.AccountSummary;
 import com.mtm.beans.AmountAndDate;
@@ -51,6 +52,7 @@ public class BillingResource extends AbstractRestResource {
         PAGINATION_SELECT_COLUMNS.add("work"    );
         PAGINATION_SELECT_COLUMNS.add("vehicleid"    );
         PAGINATION_SELECT_COLUMNS.add("consignerid"    );
+        PAGINATION_SELECT_COLUMNS.add("registration_num"    );
 
     }
 
@@ -67,6 +69,45 @@ public class BillingResource extends AbstractRestResource {
     public BillingResource(Dao dao) {
         super(dao);
     }
+
+    @GET
+    @Path("/billing/ownersummary/{ownerid}/{consignerid}")
+    public AccountSummary getAccountSummaryForOwner(@PathParam("ownerid") Optional<String> ownerIdArg, @PathParam("consignerid") Optional<String> consignerIdArg)
+    {
+        long consignerId = Long.parseLong(consignerIdArg.get());
+        long ownerid = Long.parseLong(ownerIdArg.get());
+        List<List<String>> vehicleIdsRecords = dao.executeQuery("select distinct vehicleid from trip where routeid in (select routeid from route where" +
+                " consignerid =  "+consignerId+" and ownerid = "+ownerid+")");
+        AccountSummary accountSummary = new AccountSummary();
+        for(List<String> columns : vehicleIdsRecords)
+        {
+            Optional<String> vehicleIdArg = Optional.of(columns.get(0));
+            AccountSummary  currentVehicleAccountSummmary = getAccountSummary(vehicleIdArg,consignerIdArg);
+            accountSummary.setConsignerId(consignerId);
+            //accountSummary.setVehicleId(vehicleId);
+            if(accountSummary.getLastBillDate().compareTo(currentVehicleAccountSummmary.getLastBillDate()) < 1)
+                try {
+                    accountSummary.setLastBillDate(dateTimeFormat.parse(currentVehicleAccountSummmary.getLastBillDate()));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            accountSummary.setReportDate(new Date());
+            accountSummary.setTotalBilled(accountSummary.getTotalBilled() + currentVehicleAccountSummmary.getTotalBilled());
+            accountSummary.setTotalReceivables(accountSummary.getTotalReceivables() + currentVehicleAccountSummmary.getTotalReceivables());
+            accountSummary.setTotalUnbilledEarned(accountSummary.getTotalUnbilledEarned() + currentVehicleAccountSummmary.getTotalUnbilledEarned());
+            accountSummary.setTotalUnbilledReceived(accountSummary.getTotalUnbilledReceived() + currentVehicleAccountSummmary.getTotalUnbilledReceived());
+            accountSummary.setOwnerName(currentVehicleAccountSummmary.getOwnerName());
+            accountSummary.setConsignerName(currentVehicleAccountSummmary.getConsignerName());
+        }
+
+        return accountSummary;
+
+    }
+
+
+
+
+
     @GET
     @Path("/billing/summary/{vehicleid}/{consignerid}")
     public AccountSummary getAccountSummary(@PathParam("vehicleid") Optional<String> vehicleIdArg, @PathParam("consignerid") Optional<String> consignerIdArg)
@@ -98,6 +139,32 @@ public class BillingResource extends AbstractRestResource {
     }
 
     @GET
+    @Path("/ownerstatement/getpaginated/{ownerid}/{consignerid}")
+    public List<CreditDebit> getPaginatedRecordsOwner(@PathParam("ownerid") Optional<String> ownerIdArg, @PathParam("consignerid") Optional<String> consignerIdArg, @QueryParam("where") Optional<String> whereClause, @QueryParam("min") Optional<String> min, @QueryParam("max") Optional<String> max, @QueryParam("recordsPerPage") Optional<String> recordsPerPage) {
+
+        long consignerId = Long.parseLong(consignerIdArg.get());
+        long ownerid = Long.parseLong(ownerIdArg.get());
+        List<List<String>> vehicleIdsRecords = dao.executeQuery("select distinct vehicleid from trip where routeid in (select routeid from route where" +
+                " consignerid =  "+consignerId+" and ownerid = "+ownerid+")");
+
+        List<String> vehicleIds = new ArrayList<>();
+        for(List<String> recordColumns : vehicleIdsRecords)
+        {
+            vehicleIds.add(recordColumns.get(0));
+        }
+        String newWhereClause = "";
+        if(whereClause.isPresent())
+
+            newWhereClause = whereClause.get()+" and vehicleid in ("+ Joiner.on(',').join(vehicleIds)+")";
+        else
+            newWhereClause = " vehicleid in ("+ Joiner.on(',').join(vehicleIds)+")";
+        return getPaginatedRecords(Optional.of(newWhereClause),min,max, recordsPerPage);
+
+
+
+    }
+
+    @GET
     @Path("/statement/getpaginated")
     public List<CreditDebit> getPaginatedRecords(@QueryParam("where") Optional<String> whereClause, @QueryParam("min") Optional<String> min, @QueryParam("max") Optional<String> max, @QueryParam("recordsPerPage") Optional<String> recordsPerPage) {
         List<List<String>> records = super.getPaginated(whereClause,min,max,recordsPerPage);
@@ -120,7 +187,8 @@ public class BillingResource extends AbstractRestResource {
             creditDebit.setTxn_type(record.get(4));
             creditDebit.setVehicleid(Long.parseLong(record.get(5)));
             creditDebit.setConsignerid(Long.parseLong(record.get(6)));
-            creditDebit.setRowid(Long.parseLong(record.get(7)));
+            creditDebit.setRegistration_num(record.get(7));
+            creditDebit.setRowid(Long.parseLong(record.get(8)));
             creditDebits.add(creditDebit);
 
 
@@ -141,7 +209,7 @@ public class BillingResource extends AbstractRestResource {
 
 
             try {
-                final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generate(vehicleId,consignerId));
+                final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generate(vehicleId,consignerId, null, null));
 
                 return Response.ok().entity(new StreamingOutput() {
 
@@ -162,6 +230,40 @@ public class BillingResource extends AbstractRestResource {
             return null;
         }
 
+    @GET
+    @Produces("application/pdf")
+    @Path("/statement/downloadfiltered/{vehicleid}/{consignerid}")
+    @Timed
+    public Response downloadStatementForDateRange(@PathParam("vehicleid") Optional<String> vehicleIdArg, @PathParam("consignerid") Optional<String> consignerIdArg , @QueryParam("fromDate") Optional<String> fromDateArg, @QueryParam("toDate") Optional<String> toDateArg)
+    {
+        long consignerId = Long.parseLong(consignerIdArg.get());
+        long vehicleId = Long.parseLong(vehicleIdArg.get());
+        String fromDate = fromDateArg.get();
+        String toDate = toDateArg.get();
+
+
+
+        try {
+            final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generate(vehicleId,consignerId, fromDate, toDate));
+
+            return Response.ok().entity(new StreamingOutput() {
+
+                public void write(final OutputStream output) throws IOException, WebApplicationException {
+                    try {
+                        Files.copy(generatedPDFPath, output);
+                    } finally {
+                        Files.delete(generatedPDFPath);
+                    }
+                }
+            }).build();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 
     @GET
     @Produces("application/pdf")
@@ -174,7 +276,41 @@ public class BillingResource extends AbstractRestResource {
 
 
         try {
-            final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generate(vehicleId,consignerId));
+            final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generate(vehicleId,consignerId,null, null));
+
+            return Response.ok().entity(new StreamingOutput() {
+
+                public void write(final OutputStream output) throws IOException, WebApplicationException {
+                    try {
+                        Files.copy(generatedPDFPath, output);
+                    } finally {
+                        Files.delete(generatedPDFPath);
+                    }
+                }
+            }).build();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @GET
+    @Produces("application/pdf")
+    @Path("/challans/downloadfiltered/{vehicleid}/{consignerid}")
+    @Timed
+    public Response downloadChallansForDateRange(@PathParam("vehicleid") Optional<String> vehicleIdArg, @PathParam("consignerid") Optional<String> consignerIdArg, @QueryParam("fromDate") Optional<String> fromDateArg, @QueryParam("toDate") Optional<String> toDateArg)
+    {
+        long consignerId = Long.parseLong(consignerIdArg.get());
+        long vehicleId = Long.parseLong(vehicleIdArg.get());
+        String fromDate = fromDateArg.get();
+        String toDate = toDateArg.get();
+
+
+        try {
+            final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generate(vehicleId,consignerId, fromDate, toDate));
 
             return Response.ok().entity(new StreamingOutput() {
 
