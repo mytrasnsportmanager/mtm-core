@@ -3,17 +3,26 @@ package com.mtm.service.rest.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
 import com.mtm.beans.Status;
+import com.mtm.beans.UserSession;
+import com.mtm.beans.UserType;
 import com.mtm.beans.dto.*;
 
 import com.mtm.dao.Dao;
 import com.mtm.dao.OwnerDao;
 import io.dropwizard.jersey.PATCH;
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.hk2.api.PerThread;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by Admin on 3/10/2019.
@@ -22,6 +31,13 @@ import java.util.List;
 
 @Produces(MediaType.APPLICATION_JSON)
 public class OwnerResource extends AbstractRestResource {
+
+
+    @Context
+    HttpServletRequest req;
+    @Context
+    HttpServletResponse res;
+
     private static final OwnerDao dao = new OwnerDao();
     public OwnerResource() {
         super(dao);
@@ -63,7 +79,7 @@ public class OwnerResource extends AbstractRestResource {
     @Path("/owners/{ownerid}/routesdetailed")
     public List<Route> getAvailableRoutes(@PathParam("ownerid") Optional<String> ownerId) {
 
-        String routeQuery = "select r.routeid,r.source ,r.destination,r.consignerid,r.source_district,r.source_state ,r.destination_district ,r.destination_state,r.source_longitude ,r.source_latitude,r.destination_longitude ,r.destination_latitude ,r.ownerid ,r.rate ,r.rate_type, c.consigner_name, c.consigner_contact, cr.image_url as consigner_image from route r left outer join consigner cr on r.consignerid=cr.consignerid left outer join owner_consigner c on r.consignerid = c.consignerid and r.ownerid=c.ownerid where r.ownerid="+ownerId.get().toString();
+        String routeQuery = "select r.routeid,r.source ,r.destination,r.consignerid,r.source_district,r.source_state ,r.destination_district ,r.destination_state,r.source_longitude ,r.source_latitude,r.destination_longitude ,r.destination_latitude ,r.ownerid ,r.rate ,r.rate_type, c.consigner_name, c.consigner_contact, cr.image_url as consigner_image, r.fuel_needed as fuel_needed from route r left outer join consigner cr on r.consignerid=cr.consignerid left outer join owner_consigner c on r.consignerid = c.consignerid and r.ownerid=c.ownerid where r.ownerid="+ownerId.get().toString();
         List<List<String>> records = dao.executeQuery(routeQuery);
         List<Route> routes = new ArrayList<Route>();
         for(List<String> record: records)
@@ -87,6 +103,8 @@ public class OwnerResource extends AbstractRestResource {
             route.setConsigner_name(record.get(15));
             route.setConsigner_contact(record.get(16));
             route.setConsigner_image(record.get(17));
+            if(StringUtils.isNotEmpty(record.get(18)))
+            route.setFuel_needed(Double.parseDouble(record.get(18)));
             routes.add(route);
 
         }
@@ -99,8 +117,15 @@ public class OwnerResource extends AbstractRestResource {
     @Path("/owners/search")
     public List<Object> search(@QueryParam("where") Optional<String> whereClause) {
 
+        String whereClauseStr = whereClause.get();
+        if(isAccountant())
+        {
+            long ownerContact = getOwnerContact();
+            whereClauseStr = replaceContact(whereClauseStr,ownerContact);
 
-        return get(whereClause.get());
+        }
+
+        return get(whereClauseStr);
 
     }
     @GET
@@ -115,5 +140,43 @@ public class OwnerResource extends AbstractRestResource {
 
     public List<Owner> getPaginatedRecords(@QueryParam("where") Optional<String> whereClause, @QueryParam("min") Optional<String> min, @QueryParam("max") Optional<String> max, @QueryParam("recordsPerPage") Optional<String> recordsPerPage) {
         return null;
+    }
+
+    private boolean isAccountant()
+    {
+        HttpSession session= req.getSession();
+
+        UserSession userSession = (UserSession) session.getAttribute("user_session");
+        if(userSession.getUserType()== UserType.ACCOUNTANT)
+            return true;
+        return false;
+    }
+
+    private long getOwnerContact()
+    {
+        HttpSession session= req.getSession();
+
+        UserSession userSession = (UserSession) session.getAttribute("user_session");
+        return userSession.getAssociatedOwnerContact();
+    }
+
+    private static String replaceContact(String text, long contact) {
+       /* Pattern pattern = Pattern.compile("\\d{10}");
+        Matcher matcher = pattern.matcher(text);
+        // Check all occurrences
+        while (matcher.find()) {
+            System.out.print("Start index: " + matcher.start());
+            System.out.print(" End index: " + matcher.end());
+            System.out.println(" Found: " + matcher.group());
+        }*/
+        text = text.replaceFirst("\\d{10}",contact+"");
+
+        return text;
+
+    }
+
+    public static void main (String[] args)
+    {
+        replaceContact("contact = 9673831235",8830358713l);
     }
 }

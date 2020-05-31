@@ -138,6 +138,16 @@ public class Route extends Record{
     private String consigner_contact;
     private String consigner_image;
 
+    public double getFuel_needed() {
+        return fuel_needed;
+    }
+
+    public void setFuel_needed(double fuel_needed) {
+        this.fuel_needed = fuel_needed;
+    }
+
+    private double fuel_needed;
+
     public double getDistance() {
         return distance;
     }

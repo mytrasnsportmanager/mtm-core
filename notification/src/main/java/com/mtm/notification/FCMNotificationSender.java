@@ -101,6 +101,8 @@ public class FCMNotificationSender {
 
                 System.out.println(dataNotificationStr);
 
+           // dataNotificationStr = "{\"message\":{\"token\":\"d66NV5d0SYWLJxXfFM-8fa:APA91bEUnpUIg3pY10AlKlUIrW8BtrGM2zs8ZdTSbULmj0drD2vWXTKXuI_7UYpMtJESkgiij7b_QqxYQd8jEaDobCfS8FS838YCo-ODzWJZB7brSmtWai_kAwMzcTX19oMsaEa1ST7L\",\"data\":{\"rowid\":null,\"user_device_id\":\"d66NV5d0SYWLJxXfFM-8fa:APA91bEUnpUIg3pY10AlKlUIrW8BtrGM2zs8ZdTSbULmj0drD2vWXTKXuI_7UYpMtJESkgiij7b_QqxYQd8jEaDobCfS8FS838YCo-ODzWJZB7brSmtWai_kAwMzcTX19oMsaEa1ST7L\",\"messagetitle\":\"Document Uploaded by Driver\",\"messagetext\":\" A document has been uploaded by null for JH09A2968, check the messge to view the document\",\"messageread\":null,\"messageid\":\"0\",\"notificationtime\":\"2020-05-28 01:59:49\",\"online\":null,\"notificationread\":null,\"fcmrsponsemessageid\":null,\"image_url\":\"http://34.66.81.100:8080/mtm/resources/images/vehiclegeneraldocument/7?rand=0.4133275245096223\",\"icon_image_url\":null,\"userid\":\"8\",\"usertype\":\"OWNER\",\"notification_type\":\"NOTIFICATION_CHALLAN_UPLOAD\",\"file_url\":null}}}";
+
                 /*dataNotificationStr = "{\n" +
                         "\"message\": {\n" +
                         "\"token\": \"eTGOrm8BRbGEV1IilOL1CG:APA91bE9wCxt11LjbzVdXFN-Nd0VegMmK4hxdSTjA8Kv6nyNS7WLbHlOOMZ6jZhR7G7IWigpft0bQbSWwgg_mbl3Sd6yLaliUTylaVIgayPiKpl0GPAb1k1OEbjyiLOYqoNJzinvTJK7\",\n" +
@@ -150,7 +152,7 @@ public class FCMNotificationSender {
                              entity = response.getEntity();
                             return entity != null ? EntityUtils.toString(entity) : null;
                         } else {
-                            System.out.println("response is "+EntityUtils.toString(entity));
+                            System.out.println("response is "+response);
                             throw new ClientProtocolException("Unexpected response status: " + status);
                         }
                 }
@@ -199,7 +201,7 @@ public class FCMNotificationSender {
 
         for (int i = 4; i < 5; i++) {
             Notification notification = new Notification();
-            notification.setUser_device_id("dZs9C-aMTS6gKRVMWt5YDp:APA91bGiIcsaM-cfMK62VJki9fH7AajVz_0BeSdd5fHWlJDAY0O92MHb1kirfKVhm_RLbyJhPFeOSCdMbHnWB7PiPSmb_5NzPRYgOrCsQ7B2Nd6TNweCucR5YBaybe1yd5FDDNUXqT2g");
+            notification.setUser_device_id("czQ6NYKATGGuQjnpAX6MHy:APA91bGHoK_CuXx9ZqArrObJDIIr1Qj0A7U2kKx0WIoUZy7L4MIB-l9su6NFAL6z9xK33Px8uUkjgozCF3k7Z-6j2UZvTYkbQyEZ6h9L-dYrSaO57emGwa8aJMcI2HlIfsGp5b5noKx5");
             notification.setMessagetitle("A test message" + i);
             notification.setMessagetext("This is a message sent by mtm web server " + i);
             notification.setUserid(8);
@@ -212,7 +214,7 @@ public class FCMNotificationSender {
 
             DataNotification dataNotification = new DataNotification();
             dataNotification.setData(notification);
-            dataNotification.setToken("dZs9C-aMTS6gKRVMWt5YDp:APA91bGiIcsaM-cfMK62VJki9fH7AajVz_0BeSdd5fHWlJDAY0O92MHb1kirfKVhm_RLbyJhPFeOSCdMbHnWB7PiPSmb_5NzPRYgOrCsQ7B2Nd6TNweCucR5YBaybe1yd5FDDNUXqT2g");
+            dataNotification.setToken("czQ6NYKATGGuQjnpAX6MHy:APA91bGHoK_CuXx9ZqArrObJDIIr1Qj0A7U2kKx0WIoUZy7L4MIB-l9su6NFAL6z9xK33Px8uUkjgozCF3k7Z-6j2UZvTYkbQyEZ6h9L-dYrSaO57emGwa8aJMcI2HlIfsGp5b5noKx5");
            // dataNotification.setMessageType("NOTIFICATION_CHALLAN_UPLOAD");
             com.mtm.beans.dto.Message message = new com.mtm.beans.dto.Message();
             message.setMessage(dataNotification);

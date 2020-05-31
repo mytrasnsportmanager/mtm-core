@@ -1,18 +1,26 @@
 package com.mtm.service.rest.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.api.client.util.Joiner;
 import com.google.common.base.Optional;
 import com.mtm.beans.RateType;
 import com.mtm.beans.Status;
+import com.mtm.beans.UserSession;
 import com.mtm.beans.UserType;
 import com.mtm.beans.dto.*;
 import com.mtm.dao.*;
 import io.dropwizard.jersey.PATCH;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,11 +34,16 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 public class VehicleResource extends AbstractRestResource {
 
+    @Context
+    HttpServletRequest req;
+    @Context
+    HttpServletResponse res;
     private static VehicleDao dao = new VehicleDao();
     private static ExpenseDao expenseDao = new ExpenseDao();
     private static BillingDao billingDao = new BillingDao();
     private static TripDao tripDao = new TripDao();
     private static VehicleLocationDao vehicleLocationDao = new VehicleLocationDao();
+    private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
 
 
     public VehicleResource() {
@@ -61,6 +74,7 @@ public class VehicleResource extends AbstractRestResource {
 
         Status status =  (Status)create(vehicle);
         long vehicleid = status.getInsertedId();
+        updateVehicleInSession(vehicleid);
         VehicleLocation vehicleLocation = new VehicleLocation();
         vehicleLocation.setVehicleid(vehicleid);
         vehicleLocationDao.insert(vehicleLocation);
@@ -92,8 +106,11 @@ public class VehicleResource extends AbstractRestResource {
     @Path("/vehicles/search")
     public List<Object> search(@QueryParam("where") Optional<String> whereClause) {
 
-
-        return get(whereClause.get());
+        StringBuffer whereClauseStr = new StringBuffer(whereClause.get());
+        String authorizedVehicleList = getAuthorizedVehicleList();
+        if(StringUtils.isNotEmpty(authorizedVehicleList))
+            whereClauseStr.append(" and vehicleid in ("+authorizedVehicleList+" )");
+        return get(whereClauseStr.toString());
 
     }
 
@@ -123,7 +140,7 @@ public class VehicleResource extends AbstractRestResource {
     public Object deleteRoute(@PathParam("vehicleid") Optional<String> vehicleId)
     {
 
-        return dao.delete(" vehicleid = "+vehicleId);
+        return dao.delete(" vehicleid = "+vehicleId.get());
 
 
     }
@@ -151,7 +168,7 @@ public class VehicleResource extends AbstractRestResource {
                 "when a.rate_type = 'per month' then concat(b.work_done , \" Months, \",a.rate, \"per Month\")\n" +
                 "else\n" +
                 "concat(b.work_done)\n" +
-                "end as work_done_detail, b.starttime, b.endtime,  c.name as consigner_name, b.material_name, c.image_url, (b.work_done*a.rate) as rent_earned, b.work_done, b.tripid  from route a inner join trip  b on a.routeid = b.routeid inner join consigner c on a.consignerid = c.consignerid  where b.vehicleid ="+vehicleId.get()+" order  by b.starttime desc  limit "+numberRecords ;
+                "end as work_done_detail, b.starttime, b.endtime,  c.name as consigner_name, b.material_name, c.image_url, (b.work_done*a.rate) as rent_earned, b.work_done, b.tripid, b.expected_fuel_consumed  from route a inner join trip  b on a.routeid = b.routeid inner join consigner c on a.consignerid = c.consignerid  where b.vehicleid ="+vehicleId.get()+" order  by b.starttime desc  limit "+numberRecords ;
         List<List<String>> records = dao.executeQuery(query);
         List<TripDetail> tripDetails = new ArrayList<TripDetail>();
         for(List<String> record : records)
@@ -177,6 +194,8 @@ public class VehicleResource extends AbstractRestResource {
             tripDetail.setRentEarned(Double.parseDouble(record.get(14)));
             tripDetail.setWork_done(Double.parseDouble(record.get(15)));
             tripDetail.setTripid(Long.parseLong(record.get(16)));
+            if(StringUtils.isNotEmpty(record.get(17)))
+            tripDetail.setExpected_fuel_consumed(decimalFormat.format(Double.parseDouble(record.get(17))));
             tripDetails.add(tripDetail);
 
         }
@@ -210,7 +229,7 @@ public class VehicleResource extends AbstractRestResource {
 
     @POST
     @Path("/vehicles/{vehicleid}/repeatTrip")
-    public Object createVehicle(Trip tripArg)
+    public Object repeatTrip(Trip tripArg)
     {
         Trip tripToBeRepeated = (Trip)((tripDao.getRecords(" tripid = "+tripArg.getTripid()).get(0)));
         if(tripArg.getWork_done()!=0)
@@ -234,6 +253,25 @@ public class VehicleResource extends AbstractRestResource {
 
     public List<Vehicle> getPaginatedRecords(@QueryParam("where") Optional<String> whereClause, @QueryParam("min") Optional<String> min, @QueryParam("max") Optional<String> max, @QueryParam("recordsPerPage") Optional<String> recordsPerPage) {
         return null;
+    }
+
+
+    private String getAuthorizedVehicleList()
+    {
+        HttpSession session= req.getSession();
+
+        UserSession userSession = (UserSession) session.getAttribute("user_session");
+        return Joiner.on(',').join(userSession.getVehicleIdList());
+    }
+
+    private void updateVehicleInSession(long vehicleid)
+    {
+
+        HttpSession session= req.getSession();
+
+        UserSession userSession = (UserSession) session.getAttribute("user_session");
+        userSession.getVehicleIdList().add(vehicleid);
+        session.setAttribute("user_session",userSession);
     }
 
 

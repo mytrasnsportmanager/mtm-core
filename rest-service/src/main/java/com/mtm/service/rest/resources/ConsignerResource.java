@@ -71,7 +71,7 @@ public class ConsignerResource extends AbstractRestResource{
     @Path("/consigners/{consignerid}/routesdetailed")
     public List<Route> getAvailableRoutes(@PathParam("consignerid") Optional<String> consignerId) {
 
-        String routeQuery = "select r.routeid,r.source ,r.destination,r.consignerid,r.source_district,r.source_state ,r.destination_district ,r.destination_state,r.source_longitude ,r.source_latitude,r.destination_longitude ,r.destination_latitude ,r.ownerid ,r.rate ,r.rate_type, c.consigner_name, c.consigner_contact, cr.image_url as consigner_image from route r left outer join consigner cr on r.consignerid=cr.consignerid left outer join owner_consigner c on r.consignerid = c.consignerid and r.ownerid=c.ownerid where r.consignerid="+consignerId.get().toString();
+        String routeQuery = "select r.routeid,r.source ,r.destination,r.consignerid,r.source_district,r.source_state ,r.destination_district ,r.destination_state,r.source_longitude ,r.source_latitude,r.destination_longitude ,r.destination_latitude ,r.ownerid ,r.rate ,r.rate_type, c.consigner_name, c.consigner_contact, cr.image_url,  as consigner_image, r.fuel_needed as fuel_needed from route r left outer join consigner cr on r.consignerid=cr.consignerid left outer join owner_consigner c on r.consignerid = c.consignerid and r.ownerid=c.ownerid where r.consignerid="+consignerId.get().toString();
         List<List<String>> records = dao.executeQuery(routeQuery);
         List<Route> routes = new ArrayList<Route>();
         for(List<String> record: records)
@@ -95,6 +95,7 @@ public class ConsignerResource extends AbstractRestResource{
             route.setConsigner_name(record.get(15));
             route.setConsigner_contact(record.get(16));
             route.setConsigner_image(record.get(17));
+            route.setFuel_needed(Double.parseDouble(record.get(18)));
             routes.add(route);
 
         }

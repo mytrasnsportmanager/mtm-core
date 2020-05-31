@@ -213,14 +213,20 @@ public class FileUploadService {
                 // Send notification to owner
                 List<List<String>> records = vehicleDao.executeQuery("select device_id from user where usertype = 'OWNER' and userid in (select ownerid from vehicle where vehicleid = "+id+")");
                 Vehicle vehicle = (Vehicle) vehicleDao.getConvertedRecords(" vehicleid = "+id).get(0);
+                List<List<String>> driverNameRecords = driverDao.executeQuery("select name from vehicledriver where driverid = "+vehicle.getDriverid());
                 String device_id = null;
+                String driver_name = null;
                 if(records.size() > 0)
                 device_id = records.get(0).get(0);
+
+                if(driverNameRecords.size()>0)
+                   driver_name = driverNameRecords.get(0).get(0);
+
                 Notification notification = new Notification();
                 notification.setImage_url(baseURL+resourcePath);
-                notification.setMessagetext(" A document has been uploaded by "+vehicle.getDriver_name() +" for "+vehicle.getRegistration_num() +", check the messge to view the document");
+                notification.setMessagetext(" ड्राइवर   "+driver_name +" ने  "+vehicle.getRegistration_num() +" के लिए एक डॉक्यूमेंट अपलोड किया है , देखने के लिए नोटिफिकेशन्स ऑप्शन में जाएँ ");
                 notification.setNotificationtime(new Date());
-                notification.setMessagetitle("Document Uploaded by Driver");
+                notification.setMessagetitle("डॉक्यूमेंट अपलोड किया गया है ");
                 notification.setUserid(vehicle.getOwnerid());
                 notification.setUsertype("OWNER");
                 notification.setNotification_type("NOTIFICATION_CHALLAN_UPLOAD");

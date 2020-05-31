@@ -35,11 +35,11 @@
                                 <fo:table-row>
                                     <fo:table-cell padding="1mm" text-align="left">
 									
-									<fo:block font-size="20pt" font-weight="bold">
+									<fo:block font-family="Amiko" font-size="20pt" font-weight="bold">
                                                  <fo:block>
 												 <fo:external-graphic  height="80" width="80" content-height="80"
                         content-width="80" src="url(file:////home/mtmuser/proj/deployed/mtm/resources/images/mtmlogo.png)" />
-												</fo:block> My Transport Manager
+												</fo:block> सारथी
                                                 </fo:block>
 												
 									 </fo:table-cell>
@@ -73,17 +73,17 @@
                                     <fo:table-cell padding="1mm" text-align="left">
 
                                                
-												<fo:block font-size="10pt" font-weight="bold">
-                                                    Owner Name :   <xsl:value-of select="ownername"/>
+												<fo:block font-family="Amiko" font-size="10pt" font-weight="bold">
+                                                    गाडी मालिक का नाम  :   <xsl:value-of select="ownername"/>
                                                 </fo:block>
-                                                <fo:block font-size="10pt" font-weight="bold">
-                                                    Vehicle Number : <xsl:value-of select="registration_num"/>
+                                                <fo:block font-family="Amiko" font-size="10pt" font-weight="bold">
+                                                    गाडी नंबर  : <xsl:value-of select="registration_num"/>
                                                 </fo:block>
-                                                <fo:block font-size="10pt" font-weight="bold">
-                                                    Vehicle Type : <xsl:value-of select="vehicletype"/>
+                                                <fo:block font-family="Amiko" font-size="10pt" font-weight="bold">
+                                                    गाडी प्रकार  : <xsl:value-of select="vehicletype"/>
                                                 </fo:block>
-                                                <fo:block font-size="10pt" font-weight="bold">
-                                                    Consigner Name :   <xsl:value-of select="consignername"/>
+                                                <fo:block font-family="Amiko" font-size="10pt" font-weight="bold">
+                                                    ट्रांसपोर्टर का नाम  :   <xsl:value-of select="consignername"/>
                                                 </fo:block>
 
                                     </fo:table-cell>
@@ -96,22 +96,22 @@
                                     </fo:table-cell>
                                     <fo:table-cell padding="1mm" text-align="right">
 
-                                                <fo:block font-size="10pt" font-weight="bold">
-                                                    Total Earnings  <fo:block font-size="20pt" font-weight="bold"><xsl:value-of select="totalReceivables"/>
+                                                <fo:block font-family="Amiko" font-size="10pt" font-weight="bold">
+                                                    कुल बकाया   <fo:block font-size="20pt" font-weight="bold"><xsl:value-of select="totalReceivables"/>
                                                 </fo:block>
                                                 </fo:block>
-                                                <fo:block font-size="10pt" font-weight="bold">
-                                                    Current unbilled  <xsl:value-of select="currentUnbilled"/>
+                                                <fo:block font-family="Amiko" font-size="10pt" font-weight="bold">
+                                                    वर्तमान महीना राशि   <xsl:value-of select="currentUnbilled"/>
                                                 </fo:block>
-                                                <fo:block font-size="10pt" font-weight="bold">
-                                                    Previous billed <xsl:value-of select="previousBilled"/>
+                                                <fo:block font-family="Amiko" font-size="10pt" font-weight="bold">
+                                                    पहले का बकाया  <xsl:value-of select="previousBilled"/>
                                                 </fo:block>
                                     </fo:table-cell>
                                 </fo:table-row>
                         </fo:table-body>
                     </fo:table>
 
-                    <fo:block white-space-collapse="false"
+                    <fo:block font-family="Amiko" white-space-collapse="false"
                               white-space-treatment="preserve"
                               font-size="0pt" line-height="15px">.</fo:block>
 
@@ -125,19 +125,19 @@
                         <fo:table-header text-align="center" background-color="silver">
                             <fo:table-row>
                                 <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                    <fo:block font-weight="bold">Date</fo:block>
+                                    <fo:block font-family="Amiko" font-weight="bold">दिनांक</fo:block>
                                 </fo:table-cell>
                                 <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                    <fo:block font-weight="bold">Amount</fo:block>
+                                    <fo:block font-family="Amiko" font-weight="bold">अमाउंट</fo:block>
                                 </fo:table-cell>
                                 <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                <fo:block font-weight="bold">Earned/Received</fo:block>
+                                <fo:block font-family="Amiko" font-weight="bold">कमाया/मिला </fo:block>
                             </fo:table-cell>
                                 <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                    <fo:block font-weight="bold">Reference Number</fo:block>
+                                    <fo:block font-family="Amiko" font-weight="bold">बिल नंबर </fo:block>
                                 </fo:table-cell>
                                 <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                    <fo:block font-weight="bold">Expense Type</fo:block>
+                                    <fo:block font-family="Amiko" font-weight="bold">कमाई या खर्चे का प्रकार </fo:block>
                                 </fo:table-cell>
                             </fo:table-row>
                         </fo:table-header>

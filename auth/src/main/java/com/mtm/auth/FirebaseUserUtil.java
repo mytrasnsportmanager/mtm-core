@@ -23,8 +23,8 @@ public class FirebaseUserUtil {
     {
         FileInputStream refreshToken = null;
         try {
-           // refreshToken = new FileInputStream("/home/mtmuser/proj/deployed/mtm/proserviceaccoutkey.json");
-            refreshToken = new FileInputStream("C:/prj/mtm/proserviceaccoutkey.json");
+           refreshToken = new FileInputStream("/home/mtmuser/proj/deployed/mtm/proserviceaccoutkey.json");
+         //   refreshToken = new FileInputStream("C:/prj/mtm/proserviceaccoutkey.json");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -50,7 +50,7 @@ public class FirebaseUserUtil {
 
     public static synchronized String getAccessToken()
     {
-        if(googleCredentials.getAccessToken()==null)
+        if(googleCredentials!=null)
             try {
                 googleCredentials.refresh();
             } catch (IOException e) {
@@ -63,8 +63,8 @@ public class FirebaseUserUtil {
     public static void main(String[] args)
     {
         try {
-           // createUser();
-            checkUser("dummy","dummy");
+          //  createUser();
+           checkUser("dummy","dummy");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -75,7 +75,7 @@ public class FirebaseUserUtil {
 
 
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance(firebaseApp);
-        UserRecord userRecord = firebaseAuth.getUserByPhoneNumber("+918830354167");
+        UserRecord userRecord = firebaseAuth.getUserByPhoneNumber("+919386509325");
         System.out.println(userRecord.getDisplayName());
 
         return true;
@@ -101,24 +101,29 @@ public class FirebaseUserUtil {
 
 
 
-    private static void createUser()
+    public static boolean createUser( UserRecord.CreateRequest request)
     {
-        UserRecord.CreateRequest request = new UserRecord.CreateRequest()
-                .setEmail("abhi1iips2@gmail.com")
+        /*UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+                .setEmail("user@mtm.com")
                 .setEmailVerified(false)
-                .setPassword("Monitoring123")
-                .setPhoneNumber("+918830354167")
-                .setDisplayName("John Doe")
+                .setPassword("dummyp")
+                .setPhoneNumber("+919386509325")
+                .setDisplayName("Test Representative")
                 .setPhotoUrl("http://www.example.com/12345678/photo.png")
-                .setDisabled(false);
+                .setDisabled(false);*/
 
         UserRecord userRecord = null;
         try {
             userRecord = FirebaseAuth.getInstance(firebaseApp).createUser(request);
         } catch (FirebaseAuthException e) {
             e.printStackTrace();
+            return false;
         }
-        System.out.println("Successfully created new user: " + userRecord.getUid());
+        if(userRecord.getUid()!=null)
+            return true;
+        else
+            return false;
+
     }
 
 

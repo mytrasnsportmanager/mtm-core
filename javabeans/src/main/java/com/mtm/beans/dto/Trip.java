@@ -117,6 +117,16 @@ public class Trip extends Record implements Serializable{
 
     private long billingid;
 
+    public double getExpected_fuel_consumed() {
+        return expected_fuel_consumed;
+    }
+
+    public void setExpected_fuel_consumed(double expected_fuel_consumed) {
+        this.expected_fuel_consumed = expected_fuel_consumed;
+    }
+
+    private double expected_fuel_consumed;
+
     @JsonProperty
     public float getWork_done() {
         return work_done;
@@ -127,8 +137,16 @@ public class Trip extends Record implements Serializable{
     }
 
     private float work_done ;
+    private String returned_with_trip;
 
+    @JsonProperty
+    public String getReturned_with_trip() {
+        return returned_with_trip;
+    }
 
+    public void setReturned_with_trip(String returned_with_trip) {
+        this.returned_with_trip = returned_with_trip;
+    }
 
     private Date startTime = defaultDate;
     private Date endTime = defaultDate;

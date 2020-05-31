@@ -1,6 +1,7 @@
 package com.mtm.service.rest.resources;
 
 import com.google.common.base.Optional;
+import com.mtm.beans.AccountantVehicle;
 import com.mtm.beans.Status;
 import com.mtm.beans.UserSession;
 import com.mtm.beans.UserType;
@@ -9,6 +10,7 @@ import com.mtm.beans.dto.TripDetail;
 import com.mtm.beans.dto.User;
 import com.mtm.beans.dto.Vehicle;
 import com.mtm.dao.*;
+import com.mtm.dao.beans.DataType;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +19,9 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Admin on 7/15/2019.
@@ -32,6 +36,7 @@ public class LoginResource extends AbstractRestResource {
     HttpServletResponse res;
     private static LoginDao loginDao = new LoginDao();
     private static UserDao userDao = new UserDao();
+    private static AccountantVehicleDao accountantVehicleDao = new AccountantVehicleDao();
 
 
     public LoginResource() {
@@ -55,10 +60,29 @@ public class LoginResource extends AbstractRestResource {
 
     }
 
-    @POST
+    @GET
     @Path("/logout")
     public Object logout() {
         HttpSession session= req.getSession();
+
+        UserSession userSession = (UserSession) session.getAttribute("user_session");
+        long userid = userSession.getId();
+        String userType = userSession.getUserType().toString();
+        Column column = new Column();
+        column.setName("device_id");
+        column.setType(DataType.STRING);
+        column.setTableName("user");
+        Map<Column,String> columnNameValueMap = new HashMap();
+        columnNameValueMap.put(column,null);
+        userDao.update(columnNameValueMap,"userid = "+userid+" and usertype = '"+userType+"'");
+        //userDao.executeQuery("update user set device_id = null where userid = "+userid+" and usertype = '"+userType+"'");
+
+        if(session!=null) {
+            if (userType.equalsIgnoreCase(UserType.DRIVER.toString()))
+                session.setMaxInactiveInterval(259200);
+            else
+                session.setMaxInactiveInterval(14400);
+        }
         if(session!=null)
             session.invalidate();
         Status status = new Status();
@@ -90,7 +114,7 @@ public class LoginResource extends AbstractRestResource {
 
             UserSession userSession = populateSession(userDBRecord.getUserid(),UserType.valueOf(userDBRecord.getUsertype()));
             session.setAttribute("user_session",userSession);
-            res.setHeader("userid",""+user.getUserid());
+            res.setHeader("userid",""+userSession.getId());
             status.setReturnCode(0);
             // Update device_id
             userDBRecord.setDevice_id(user.getDevice_id());
@@ -119,13 +143,14 @@ public class LoginResource extends AbstractRestResource {
     public Object getUserByContact(@PathParam("contact") Optional<String> contactNumber)
     {
         long contact = Long.parseLong(contactNumber.get());
-        String userQuery = "select usertype, userid from user where registered_by <> 'OWNER' and contact = "+contact;
+        String userQuery = "select usertype, userid from user where (registered_by <> 'OWNER' and contact = "+contact+") or (usertype='ACCOUNTANT' and contact="+contact+")";
         List<List<String>> records = loginDao.executeQuery(userQuery);
         User user = new User(UserType.NONE);
         if(records!=null && records.size() >0 )
         {
             String userType = records.get(0).get(0);
-            user.setUserid(Long.parseLong(records.get(0).get(1)));
+            long userid = Long.parseLong(records.get(0).get(1));
+            user.setUserid(userid);
             if(userType.equalsIgnoreCase(UserType.OWNER.toString())) {
                  user.setUsertype(UserType.OWNER.toString());
                              }
@@ -137,6 +162,27 @@ public class LoginResource extends AbstractRestResource {
             {
                 user.setUsertype(UserType.DRIVER.toString());
             }
+            else if(userType.equalsIgnoreCase(UserType.ACCOUNTANT.toString()))
+            {
+                long ownerid;
+                user.setUsertype(UserType.ACCOUNTANT.toString());
+                // For accuntant userid has to be set as ownerid, hence provide ownerid as userid
+                List<List<String>> ownerIdRecords = accountantVehicleDao.executeQuery("select distinct ownerid from vehicle where vehicleid in (select vehicleid from accountant_vehicle where accountantid = "+userid+")");
+                if(ownerIdRecords.size() > 1)
+                {
+                    System.out.println("FATAL ERROR, an accountant cannot be associated with more than one owner");
+                    //throw new Exception("FATAL ERROR, an accountant cannot be associated with more than one owner");
+                    ownerid = -1;
+
+                }
+                else
+                ownerid = Long.parseLong(ownerIdRecords.get(0).get(0));
+
+                user.setUserid(ownerid);
+
+
+            }
+
 
         }
         return user;
@@ -164,6 +210,13 @@ public class LoginResource extends AbstractRestResource {
                 break;
             case DRIVER:
                 populateForDriver(userSession,userid);
+                break;
+            case ACCOUNTANT:
+                try {
+                    populateForAccountant(userSession,userid);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
             case NONE:
                 break;
@@ -221,6 +274,48 @@ public class LoginResource extends AbstractRestResource {
             userSession.getVehicleIdList().add(((Vehicle)obj).getVehicleid());
             userSession.getAssociatedOwnerList().add(((Vehicle)obj).getOwnerid());
         }
+    }
+
+    private void populateForAccountant(UserSession userSession , long accountantid) throws Exception {
+        AccountantVehicleDao accountantVehicleDao = new AccountantVehicleDao();
+        VehicleDao vehicleDao = new VehicleDao();
+
+
+        List<List<String>> ownerIdRecords = null;
+        ownerIdRecords = accountantVehicleDao.executeQuery("select distinct ownerid from vehicle where vehicleid in (select vehicleid from accountant_vehicle where accountantid = "+accountantid+")");
+        if(ownerIdRecords.size() > 1)
+        {
+            System.out.println("FATAL ERROR, an accountant cannot be associated with more than one owner");
+            throw new Exception("FATAL ERROR, an accountant cannot be associated with more than one owner");
+
+        }
+        long ownerid = Long.parseLong(ownerIdRecords.get(0).get(0));
+
+
+        OwnerConsignerDao ownerConsignerDao = new OwnerConsignerDao();
+        List<Object> vehicleList = accountantVehicleDao.getRecords(" accountantid = "+accountantid);
+        List<Object> associatedConsigners = ownerConsignerDao.getRecords(" ownerid = "+ownerid);
+
+        for(Object obj : vehicleList)
+        {
+            userSession.getVehicleIdList().add(((AccountantVehicle)obj).getVehicleid());
+            Vehicle vehicle = (Vehicle)(vehicleDao.getRecords(" vehicleid = "+((AccountantVehicle)obj).getVehicleid())).get(0);
+            userSession.getAssociatedDriversList().add(vehicle.getDriverid());
+        }
+
+        for(Object obj : associatedConsigners)
+        {
+            userSession.getAssociatedConsigersList().add(((OwnerConsigner)obj).getConsignerid());
+        }
+        List<Object> records = userDao.getRecords(" userid ="+ownerid+" and usertype='OWNER' ");
+        if(records!=null && records.size()>0)
+        {
+            userSession.setAssociatedOwnerContact(((User)records.get(0)).getContact());
+        }
+        userSession.setId(ownerid);
+        //userSession.set
+
+
     }
 
 

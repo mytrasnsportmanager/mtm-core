@@ -11,6 +11,7 @@ import com.mtm.service.rest.auth.AuthorizationRule;
 import com.mtm.service.rest.auth.TripAuthorizationHandler;
 import com.mtm.service.rest.validation.AuthorizationCheck;
 import io.dropwizard.jersey.PATCH;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -21,6 +22,7 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,6 +44,7 @@ public class TripResource extends AbstractRestResource{
     private static final List<String> PAGINATION_SELECT_COLUMNS = new ArrayList<String>();
     private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private TripAuthorizationHandler tripAuthorizationHandler = new TripAuthorizationHandler();
+    private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
 
 
     public void setTrip(Trip trip) {
@@ -77,6 +80,7 @@ public class TripResource extends AbstractRestResource{
         PAGINATION_SELECT_COLUMNS.add("registration_num" );
         PAGINATION_SELECT_COLUMNS.add("billingid"         );
         PAGINATION_SELECT_COLUMNS.add("work_done"         );
+        PAGINATION_SELECT_COLUMNS.add("expected_fuel_consumed"         );
     }
     public TripResource() {
         super(dao, new TripAuthorizationHandler());
@@ -102,6 +106,22 @@ public class TripResource extends AbstractRestResource{
         DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
         DateTime nowIndia = DateTime.now(timeZoneIndia);
         trip.setStarttime(nowIndia.toDate());
+        double expectedMileage = 0;
+        double distance = 0;
+        // Calculate the expected fuel consumption for this trip
+        List<List<String>> expectedMileageRecords = dao.executeQuery(" select expected_mileage from vehicle where vehicleid = "+trip.getVehicleid());
+        List<List<String>> distanceRecords = dao.executeQuery(" select distance from route where routeid = "+trip.getRouteid());
+        if(expectedMileageRecords.size()==1)
+        {
+            expectedMileage = Double.parseDouble(expectedMileageRecords.get(0).get(0));
+        }
+
+        if(distanceRecords.size()==1)
+        {
+            distance = (Double.parseDouble(distanceRecords.get(0).get(0)))/1000;
+        }
+        double fuel_needed = distance/expectedMileage;
+        trip.setExpected_fuel_consumed(fuel_needed);
          return create(trip);
     }
 
@@ -219,8 +239,10 @@ public class TripResource extends AbstractRestResource{
             {
                 tripDetail.setWork_done(Double.parseDouble(record.get(19)));
             }
+            if(StringUtils.isNotEmpty(record.get(20)))
+            tripDetail.setExpected_fuel_consumed(decimalFormat.format(Double.parseDouble(record.get(20))));
             tripDetails.add(tripDetail);
-            tripDetail.setRowid(Long.parseLong(record.get(20)));
+            tripDetail.setRowid(Long.parseLong(record.get(21)));
 
         }
         return tripDetails;

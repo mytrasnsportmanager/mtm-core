@@ -99,7 +99,10 @@ public abstract class AbstractDao implements  Dao {
                 updateQuery.append(column.getName() + "=");
                 switch (column.getType()) {
                     case STRING: {
+                        if(StringUtils.isNotEmpty(columnValue))
                         updateQuery.append("'" + columnValue + "'");
+                        else
+                            updateQuery.append("null");
                         break;
                     }
                     case DATE:

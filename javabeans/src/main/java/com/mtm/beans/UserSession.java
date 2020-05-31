@@ -54,6 +54,25 @@ public class UserSession {
     private List<Long> associatedDriversList= new ArrayList();
     private List<Long> associatedConsigersList= new ArrayList();
 
+    public long getAssociatedOwnerId() {
+        return associatedOwnerId;
+    }
+
+    public void setAssociatedOwnerId(long associatedOwnerId) {
+        this.associatedOwnerId = associatedOwnerId;
+    }
+
+    public long getAssociatedOwnerContact() {
+        return associatedOwnerContact;
+    }
+
+    public void setAssociatedOwnerContact(long associatedOwnerContact) {
+        this.associatedOwnerContact = associatedOwnerContact;
+    }
+
+    private long associatedOwnerId;
+    private long associatedOwnerContact;
+
     public List<Long> getAssociatedOwnerList() {
         return associatedOwnerList;
     }

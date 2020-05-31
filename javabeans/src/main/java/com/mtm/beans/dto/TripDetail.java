@@ -131,6 +131,24 @@ public class TripDetail extends Record {
     private String driver_name;
     private String vehicle_resistration_num;
     private long billingid;
+    private String returned_with_trip;
+    private String expected_fuel_consumed;
+
+    public String getExpected_fuel_consumed() {
+        return expected_fuel_consumed;
+    }
+
+    public void setExpected_fuel_consumed(String expected_fuel_consumed) {
+        this.expected_fuel_consumed = expected_fuel_consumed;
+    }
+
+    public String getReturned_with_trip() {
+        return returned_with_trip;
+    }
+
+    public void setReturned_with_trip(String returned_with_trip) {
+        this.returned_with_trip = returned_with_trip;
+    }
 
     @JsonProperty
     public double getWork_done() {

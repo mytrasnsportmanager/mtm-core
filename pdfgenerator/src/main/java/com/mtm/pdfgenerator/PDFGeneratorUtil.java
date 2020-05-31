@@ -36,20 +36,22 @@ import java.util.Locale;
  */
 public class PDFGeneratorUtil {
 
-    //private final static String PDF_GENERATION_TEMP_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/pdfs/";
-    //private final static String CHALLAN_GENERATION_TEMP_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/pdfs/";
+    private final static String PDF_GENERATION_TEMP_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/pdfs/";
+    private final static String CHALLAN_GENERATION_TEMP_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/pdfs/";
     private final static String XSLT_FILE_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/table.xml";
-   // private final static String XSLT_OWNER_FILE_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/ownertable.xml";
-    //private final static String XSLT_CHALLAN_FILE_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/challan.xml";
-   // private final static String FOP_CONF_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/fop.xconf";
+    private final static String XSLT_OWNER_FILE_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/ownertable.xml";
+    private final static String XSLT_CHALLAN_FILE_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/challan.xml";
+    private final static String FOP_CONF_PATH = "/home/mtmuser/proj/deployed/mtm/resources/pdfgeneration/fop.xconf";
+    private final static String CHALLAN_IMAGE_LOCATION = "/home/mtmuser/proj/deployed/mtm/resources/images/challans";
 
    //  For local execution
-   private final static String PDF_GENERATION_TEMP_PATH = "C:/prj/pdfs";
+  /* private final static String PDF_GENERATION_TEMP_PATH = "C:/prj/pdfs";
+    private final static String XSLT_FILE_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/table.xml";
    private final static String XSLT_OWNER_FILE_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/ownertable.xml";
    private final static String CHALLAN_GENERATION_TEMP_PATH = "C:/prj/mtm";
-    private final static String XSLT_CHALLAN_FILE_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/challan.xml";
-    private final static String FOP_CONF_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/fop.xconf";
-    private final static String CHALLAN_IMAGE_LOCATION = "C:/prj/mtm/imgs/challans";
+   private final static String XSLT_CHALLAN_FILE_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/challan.xml";
+   private final static String FOP_CONF_PATH = "C:/Users/Admin/IdeaProjects/mtm-core/pdfgenerator/src/main/resources/fop.xconf";
+   private final static String CHALLAN_IMAGE_LOCATION = "C:/prj/mtm/imgs/challans";*/
 
     public static String generate(long vehicleid, long consignerid, String fromDate, String toDate) throws  Exception{
 /*..*/
@@ -221,7 +223,7 @@ public class PDFGeneratorUtil {
         for(CreditDebit creditDebit : work.getBusinessDetails())
         {
             // Construct local image URL
-            String imageURL = "url(file:////"+CHALLAN_IMAGE_LOCATION+"/"+creditDebit.getTripid()+".jpg)";
+            String imageURL = "url(file:////"+CHALLAN_IMAGE_LOCATION+"/"+creditDebit.getTripid()+")";
             System.out.println("URL is "+imageURL);
             creditDebit.setChallanImageURL(imageURL);
         }
@@ -297,8 +299,9 @@ public class PDFGeneratorUtil {
     public static void main(String[] args)
     {
         try {
+            generate(7,15,null, null);
            // generateChallans(5,2, null, null);
-            generateForOwner(8,15,null, null);
+          //  generateForOwner(8,15,null, null);
         } catch (Exception e) {
             e.printStackTrace();
         }

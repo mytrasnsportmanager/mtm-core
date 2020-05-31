@@ -299,7 +299,7 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
                     "when (a.rate_type = 'per km') then concat(b.work_done,' KMs, ',a.rate,' \\nper \\nKM') when (a.rate_type = 'per month') \n" +
                     "then concat(b.work_done,' Months, ',a.rate,'per Month') else concat(b.work_done) end) AS work_done_detail,b.starttime AS starttime,b.endtime AS endtime,\n" +
                     "c.consigner_name AS consigner_name,b.material_name AS material_name,d.name AS drivername,c.image_url AS image_url,b.tripid AS tripid,e.ownerid AS ownerid,\n" +
-                    "e.registration_num AS registration_num,"+ billingid +" AS billingid,b.work_done AS work_done from ((((route a join trip b on((a.routeid = b.routeid))) join \n" +
+                    "e.registration_num AS registration_num,"+ billingid +" AS billingid,b.work_done AS work_done, b.expected_fuel_consumed as expected_fuel_consumed from ((((route a join trip b on((a.routeid = b.routeid))) join \n" +
                     "owner_consigner c on(((a.consignerid = c.consignerid) and (a.ownerid = c.ownerid)))) join vehicle e on((e.vehicleid = b.vehicleid))) join \n" +
                     "vehicledriver d on((e.driverid = d.driverid)))  where b.vehicleid = " + vehicleid +" and a.consignerid = "+ consignerid;
 

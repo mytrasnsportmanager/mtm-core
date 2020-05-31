@@ -6,7 +6,7 @@ package com.mtm.beans;
 public enum UserType {
 
 
-    OWNER, CONSIGNER, DRIVER, NONE;
+    OWNER, CONSIGNER, DRIVER, ACCOUNTANT, NONE;
 
 
 

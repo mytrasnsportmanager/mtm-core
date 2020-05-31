@@ -66,7 +66,7 @@ public class VehicleDriverResource extends AbstractRestResource{
     @Path("/drivers/unassigned")
     public List<Object> searchUnassigned(@QueryParam("where") Optional<String> whereClause) {
 
-        String query = "select driverid, name, address, license_num, contact from vehicledriver where driverid not in (select driverid from vehicle) ";
+        String query = "select driverid, name, address, license_num, contact from vehicledriver where driverid not in (select COALESCE(driverid,0) from vehicle) ";
         String whereClauseStr = null;
         if(whereClause.isPresent() )
             whereClauseStr = whereClause.get();

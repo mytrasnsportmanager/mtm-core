@@ -11,6 +11,7 @@ the location of this file.
 <fop version="1.0">
   <!-- Base URL for resolving relative URLs -->
   <base>.</base>
+  <font-base>.</font-base>
 
   <!-- Source resolution in dpi (dots/pixels per inch) for determining the size of pixels in SVG and bitmap images, default: 72dpi -->
   <source-resolution>72</source-resolution>
@@ -67,6 +68,14 @@ the location of this file.
           <font-triplet name="ArialMT" style="normal" weight="bold"/>
         </font>
         -->
+         <font kerning="yes" embed-url="Amiko-Regular.ttf">
+                          <font-triplet name="Amiko" style="normal" weight="normal"/>
+                        </font>
+
+                        <font kerning="yes" embed-url="Amiko-Bold.ttf">
+                                          <font-triplet name="Amiko" style="normal" weight="bold"/>
+                         </font>
+
       </fonts>
       <!-- This option lets you specify additional options on an XML handler -->
       <!--xml-handler namespace="http://www.w3.org/2000/svg">
@@ -369,6 +378,7 @@ the location of this file.
           <font-triplet name="Courier" style="italic" weight="bold"/>
           <font-triplet name="monospace" style="italic" weight="bold"/>
         </font>
+
       </fonts>
     </renderer>
     <renderer mime="application/postscript">

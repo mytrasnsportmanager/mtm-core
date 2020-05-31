@@ -103,6 +103,16 @@ public class Vehicle extends Record {
     private String registration_num;
     private long ownerid;
     private long vehicleid;
+    private double expected_mileage;
+
+    @JsonProperty
+    public double getExpected_mileage() {
+        return expected_mileage;
+    }
+
+    public void setExpected_mileage(double expected_mileage) {
+        this.expected_mileage = expected_mileage;
+    }
 
     public String getDriver_name() {
         return driver_name;
@@ -123,4 +133,14 @@ public class Vehicle extends Record {
     private String driver_name;
     private long driver_contact;
 
+    private double current_fuel_level;
+
+    @JsonProperty
+    public double getCurrent_fuel_level() {
+        return current_fuel_level;
+    }
+
+    public void setCurrent_fuel_level(double current_fuel_level) {
+        this.current_fuel_level = current_fuel_level;
+    }
 }

@@ -54,6 +54,62 @@ public class VehicleLocation extends Record {
     private double last_latitude;
 
     @JsonProperty
+    public double getLast_speed() {
+        return last_speed;
+    }
+
+    public void setLast_speed(double last_speed) {
+        this.last_speed = last_speed;
+    }
+
+    @JsonProperty
+    public double getLast_speed_accuracy() {
+        return last_speed_accuracy;
+    }
+
+    public void setLast_speed_accuracy(double last_speed_accuracy) {
+        this.last_speed_accuracy = last_speed_accuracy;
+    }
+
+    @JsonProperty
+    public double getLast_bearing() {
+        return last_bearing;
+    }
+
+    public void setLast_bearing(double last_bearing) {
+        this.last_bearing = last_bearing;
+    }
+
+    @JsonProperty
+
+    public double getLast_bearing_accuracy_degree() {
+        return last_bearing_accuracy_degree;
+    }
+
+    public void setLast_bearing_accuracy_degree(double last_bearing_accuracy_degree) {
+        this.last_bearing_accuracy_degree = last_bearing_accuracy_degree;
+    }
+
+    private double last_speed;
+    private double last_speed_accuracy;
+    private double last_bearing;
+    private double last_bearing_accuracy_degree;
+
+
+    @JsonProperty
+    public double getLast_altitude() {
+        return last_altitude;
+    }
+
+    public void setLast_altitude(double last_altitude) {
+        this.last_altitude = last_altitude;
+    }
+
+    private double last_altitude;
+
+
+
+    @JsonProperty
     public Date getLast_seen_at() {
         return last_seen_at;
     }

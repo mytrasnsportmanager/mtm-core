@@ -2,6 +2,7 @@ package com.mtm.dao;
 
 import com.google.firebase.auth.UserRecord;
 import com.mtm.auth.FirebaseUserUtil;
+import com.mtm.beans.Accountant;
 import com.mtm.beans.Status;
 import com.mtm.beans.UserType;
 import com.mtm.beans.dto.*;
@@ -21,6 +22,7 @@ public class UserDao extends AbstractDao{
     private OwnerDao ownerDao = new OwnerDao();
     private ConsignerDao consignerDao = new ConsignerDao();
     private DriverDao driverDao = new DriverDao();
+    private AccountantDao accountantDao = new AccountantDao();
 
 
     public UserDao()
@@ -131,6 +133,16 @@ public class UserDao extends AbstractDao{
             consigner.setAddress(user.getAddress());
             consigner.setContact(user.getContact());
             insertedId = consignerDao.insert(consigner);
+
+
+        }
+        else if (user.getUsertype().equalsIgnoreCase(UserType.ACCOUNTANT.toString()) && !wasProvisionallyRegisteredByOwner)
+        {
+
+            Accountant accountant = new Accountant();
+            accountant.setContact(user.getContact());
+            accountant.setName(user.getName());
+            insertedId = accountantDao.insert(accountant);
 
 
         }
