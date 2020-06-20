@@ -9,6 +9,7 @@ import com.mtm.dao.Dao;
 import com.mtm.dao.TxnDao;
 import com.mtm.dao.VehicleLocationDao;
 import io.dropwizard.jersey.PATCH;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -50,7 +51,7 @@ public class VehicleLocationResource extends AbstractRestResource {
 
     {
         setDate(location);
-        if(patch(location)==1)
+        if(((Status)create(location)).getMessage().equalsIgnoreCase("success"))
             return new Status("SUCCESS",0,0);
         else
             return new Status("FAILED",1,0);
@@ -61,8 +62,39 @@ public class VehicleLocationResource extends AbstractRestResource {
     @Timed
     public List<Object> getLocation(@PathParam("vehicleid") Optional<String> vehicleid) {
 
-        String whereClause = " vehicleid = "+vehicleid.get();
+        String whereClause = " vehicleid = "+vehicleid.get()+" and last_seen_at = (select max(last_seen_at) from vehicle_location where vehicleid = "+vehicleid.get()+")";
         return get(whereClause);
+
+    }
+
+    @GET
+    @Path("/locationsbydate/{vehicleid}")
+    @Timed
+    public List<Object> getLocationBetweenTime(@PathParam("vehicleid") Optional<String> vehicleid, @QueryParam("from") Optional<String> fromArg, @QueryParam("to") Optional<String> toArg) {
+
+        String from = null;
+        if(fromArg.isPresent())
+            from = fromArg.get();
+        String to = null;
+        if(toArg.isPresent())
+            to = toArg.get();
+
+        StringBuffer whereClauseBuffer = new StringBuffer();
+
+        whereClauseBuffer.append(" vehicleid = "+vehicleid.get());
+        if(StringUtils.isNotEmpty(from))
+        {
+            whereClauseBuffer.append(" and last_seen_at >= "+from);
+        }
+
+        if(StringUtils.isNotEmpty("to"))
+        {
+            whereClauseBuffer.append(" and last_seen_at <= "+to);
+        }
+
+
+
+        return get(whereClauseBuffer.toString());
 
     }
 }

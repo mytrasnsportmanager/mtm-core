@@ -74,6 +74,7 @@ public abstract class AbstractDao implements  Dao {
                 System.out.println("Issue with "+setterMethodName);
                 e.printStackTrace();
             }
+
         }
 
 
@@ -127,6 +128,13 @@ public abstract class AbstractDao implements  Dao {
         } catch (Exception e)
         {
             return false;
+        }
+        finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -204,6 +212,13 @@ public abstract class AbstractDao implements  Dao {
         {
             e.printStackTrace();
 
+        }
+        finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return null;
 
@@ -309,6 +324,13 @@ public abstract class AbstractDao implements  Dao {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
         return numRecordsPatched;
 
@@ -391,6 +413,14 @@ public abstract class AbstractDao implements  Dao {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        finally
+        {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
         return numRecordsInserted;
 
@@ -469,6 +499,14 @@ public abstract class AbstractDao implements  Dao {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
         return 0;
     }
 
@@ -490,6 +528,28 @@ public abstract class AbstractDao implements  Dao {
 
         return false;
 
+
+    }
+
+    public void runUpdateQuery(String query)
+    {
+
+        Connection connection = null;
+        try {
+            connection =  database.getConnection();
+            Statement statement = connection.createStatement();
+            statement.executeUpdate(query.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 

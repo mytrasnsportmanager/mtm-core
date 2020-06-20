@@ -13,9 +13,12 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -23,11 +26,27 @@ import java.util.List;
  * Created by Admin on 9/15/2019.
  */
 public class UserResource extends  AbstractRestResource {
+   // private static final String privacyPolicyHTMLLOcation = "C:/prj/mtm/privacy_policy.html";
+    private static final String privacyPolicyHTMLLOcation = "/home/mtmuser/proj/deployed/mtm/privacy_policy.html";
     private static UserDao dao = new UserDao();
 
     public UserResource() {
         super(dao);
 
+    }
+
+    @GET
+    @Path("/privacy_policy")
+    @Produces({MediaType.TEXT_HTML})
+    public InputStream viewHome()
+    {
+        File f = new File(privacyPolicyHTMLLOcation);
+        try {
+            return new FileInputStream(f);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @PATCH

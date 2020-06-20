@@ -35,6 +35,7 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
     {
         noAuthCheckURIList.add("mtm/login");
         noAuthCheckURIList.add("mtm/users");
+        noAuthCheckURIList.add("mtm/privacy_policy");
        // noAuthCheckURIList.add("mtm/vehicles");
        // noAuthCheckURIList.add("mtm/vehicles");
     }

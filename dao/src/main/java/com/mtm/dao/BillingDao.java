@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -255,15 +256,36 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
         return  vehicleAmountAndDateMap;
     }
 
-    public void performMonthlyBilling(long consignerid, long vehicleid)
+    public void performBillingTillDate(long consignerid, long vehicleid)
+    {
+     // First perform previous month billing
+        Date date = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String billDate = dateFormat.format(date);
+
+        Calendar calendar =  Calendar.getInstance();
+        calendar.setTime(date);
+        int currentMonthYear = calendar.get(Calendar.YEAR);
+        int currentMonth = calendar.get(Calendar.MONTH) + 1 ;
+        calendar.add(Calendar.MONTH, -1);
+        int previousMonthyear = calendar.get(Calendar.YEAR);
+        int previousMonth = calendar.get(Calendar.MONTH) + 1 ; // calender's month is 0 indexed
+        performMonthlyBilling(consignerid, vehicleid, previousMonthyear, previousMonth);
+        performMonthlyBilling(consignerid, vehicleid, currentMonthYear, currentMonth);
+
+    }
+
+    public void performMonthlyBilling(long consignerid, long vehicleid, int year, int month)
     {
         Date date = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String billDate = dateFormat.format(date);
-        Calendar calendar =  Calendar.getInstance();
-        calendar.setTime(date);
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH) + 1 ; // calender's month is 0 indexed
+        
+        //Calendar calendar =  Calendar.getInstance();
+        //calendar.setTime(date);
+        //calendar.add(Calendar.MONTH, -1);
+       // int year = calendar.get(Calendar.YEAR);
+       // int month = calendar.get(Calendar.MONTH) + 1 ; // calender's month is 0 indexed
         long ownerid ;
 
 
@@ -323,6 +345,13 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
 
     }

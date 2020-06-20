@@ -7,6 +7,7 @@ import com.mtm.dao.connection.MySqlDatabase;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +22,10 @@ public class MySqlSchemaInfoDao implements SchemaInfoDao {
     public List<Column> getSchema(String tableName) {
 
         Database database = new MySqlDatabase();
+        Connection connection = null;
         try {
             List<Column> columns = new ArrayList<Column>();
-            Connection connection = database.getConnection();
+            connection = database.getConnection();
             Statement statement = connection.createStatement();
             String schemaInfoQuery = "SELECT COLUMN_NAME, DATA_TYPE, ORDINAL_POSITION,COLUMN_KEY, EXTRA  FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='" + MTM_SCHEMA + "' AND TABLE_NAME='" + tableName + "'";
             ResultSet rs = statement.executeQuery(schemaInfoQuery);
@@ -52,6 +54,13 @@ public class MySqlSchemaInfoDao implements SchemaInfoDao {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+        finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
 
  return null;

@@ -8,6 +8,9 @@ import com.mtm.dao.TripDao;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -95,8 +98,17 @@ public class BillingService extends AbstractScheduledService {
             {
                 String vehicleListQuery = " select distinct vehicleid from trip where routeid in (select routeid from route where ownerid = "+ownerConsigner.getOwnerid()+" and consignerid = "+ownerConsigner.getConsignerid() +")";
                 List<List<String>> vehicleListRecords = tripDao.executeQuery(vehicleListQuery);
+                Date date = new Date();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String billDate = dateFormat.format(date);
+
+                Calendar calendar =  Calendar.getInstance();
+                calendar.setTime(date);
+                calendar.add(Calendar.MONTH, -1);
+                int year = calendar.get(Calendar.YEAR);
+                int month = calendar.get(Calendar.MONTH) + 1 ; // calender's month is 0 indexed
                 if(vehicleListRecords.size() !=0)
-                    billingDao.performMonthlyBilling(ownerConsigner.getConsignerid(),Long.parseLong(vehicleListRecords.get(0).get(0)));
+                    billingDao.performMonthlyBilling(ownerConsigner.getConsignerid(),Long.parseLong(vehicleListRecords.get(0).get(0)), year, month);
             }
 
 

@@ -219,14 +219,21 @@ public class PDFGeneratorUtil {
         String uniquePath = vehicleid+"_"+consignerid+"_"+currTimeInMilliseconds;
         String xmlFilePath = CHALLAN_GENERATION_TEMP_PATH+uniquePath+"xmlfile.xml";
         String pdfFilePath = CHALLAN_GENERATION_TEMP_PATH+uniquePath+"myfile.pdf";
+        List<CreditDebit> creditDebitsWithChallans = new ArrayList<>();
 
         for(CreditDebit creditDebit : work.getBusinessDetails())
         {
             // Construct local image URL
+            //System.out.println(creditDebit.getChallanImageURL());
+            if(creditDebit.getChallanImageURL().equalsIgnoreCase("default.jpg"))
+                continue;
             String imageURL = "url(file:////"+CHALLAN_IMAGE_LOCATION+"/"+creditDebit.getTripid()+")";
-            System.out.println("URL is "+imageURL);
+            //System.out.println("URL is "+imageURL);
             creditDebit.setChallanImageURL(imageURL);
+            creditDebitsWithChallans.add(creditDebit);
         }
+
+        work.setBusinessDetails(creditDebitsWithChallans);
 
 
         File xmlFile = new File(xmlFilePath);

@@ -8,9 +8,11 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.mtm.auth.FirebaseUserUtil;
+import com.mtm.beans.UserType;
 import com.mtm.beans.dto.DataNotification;
 import com.mtm.beans.dto.Notification;
 import com.mtm.beans.dto.NotificationDetail;
+import com.mtm.beans.dto.Owner;
 import com.mtm.dao.NotificationDao;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -28,6 +30,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 
 /**
@@ -38,7 +41,88 @@ public class FCMNotificationSender {
     private static SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
   private static  NotificationDao notificationDao = new NotificationDao() ;
 
-    public synchronized static String send (com.mtm.beans.dto.Message message)
+
+
+
+    public static synchronized void  send (com.mtm.beans.dto.Message message, long vehicleid,  long userid, long consignerid, UserType userType, boolean cascade)
+    {
+        String userDeviceId = null;
+        List<List<String>> records = notificationDao.executeQuery("select device_id from user where usertype = '"+userType.toString()+"' and userid = "+userid);
+        if(records!=null && records.size() > 0)
+        {
+            userDeviceId = records.get(0).get(0);
+        }
+
+        switch (userType)
+        {
+
+            case OWNER:
+            {
+                // Get the accountant id
+
+
+                DataNotification dataNotification = (DataNotification)message.getMessage();
+                dataNotification.setToken(userDeviceId);
+                Notification notification = (Notification) dataNotification.getData();
+                notification.setUserid(userid);
+                notification.setUsertype("OWNER");
+
+
+                send(message);
+                // Send it to accountant as well
+                if(cascade) {
+                    String accountantDeviceId = null;
+                    List<List<String>> accountantRecords = notificationDao.executeQuery("select device_id from user where usertype = 'ACCOUNTANT' and userid in ( select accountantid from accountant_vehicle where vehicleid = "+vehicleid+")");
+                    if(accountantRecords!=null && accountantRecords.size() > 0)
+                    {
+                        accountantDeviceId = accountantRecords.get(0).get(0);
+
+                    }
+                    notification.setUserid(userid);
+                    notification.setUsertype("ACCOUNTANT");
+                    dataNotification.setToken(accountantDeviceId);
+                    send(message);
+
+                    // Send it to consigner as well
+                    String consignerDeviceId = null;
+                    List<List<String>> consignerRecords = notificationDao.executeQuery("select device_id from user where usertype = 'CONSIGNER' and userid = "+consignerid);
+                    if(consignerRecords!=null && consignerRecords.size() > 0)
+                    {
+                        consignerDeviceId = consignerRecords.get(0).get(0);
+
+                    }
+                    notification.setUserid(consignerid);
+                    notification.setUsertype("CONSIGNER");
+                    dataNotification.setToken(consignerDeviceId);
+                    send(message);
+
+                }
+
+
+            }
+                break;
+            case CONSIGNER:
+                break;
+            case ACCOUNTANT:
+
+            case DRIVER:
+
+            case NONE:
+
+            default:
+
+
+
+
+        }
+
+
+
+    }
+
+
+
+  public synchronized static String send (com.mtm.beans.dto.Message message)
     {
         //String registrationToken = notification.getDevice_id();
 

@@ -3,14 +3,10 @@ package com.mtm.service.rest.resources;
 import com.codahale.metrics.annotation.Timed;
 import com.google.api.client.util.Joiner;
 import com.google.common.base.Optional;
-import com.mtm.beans.AccountSummary;
-import com.mtm.beans.AmountAndDate;
-import com.mtm.beans.RateType;
-import com.mtm.beans.dto.CreditDebit;
-import com.mtm.beans.dto.Txn;
-import com.mtm.dao.BillingDao;
-import com.mtm.dao.Dao;
-import com.mtm.dao.RateDao;
+import com.mtm.beans.*;
+import com.mtm.beans.dto.*;
+import com.mtm.dao.*;
+import com.mtm.notification.FCMNotificationSender;
 import com.mtm.pdfgenerator.PDFGeneratorUtil;
 import org.apache.commons.io.FileUtils;
 
@@ -33,7 +29,7 @@ import java.util.List;
 
 @Produces(MediaType.APPLICATION_JSON)
 public class BillingResource extends AbstractRestResource {
-    private static Dao dao = new BillingDao();
+    private static BillingDao dao = new BillingDao();
 
     private static final String PAGINATION_VIEW_NAME = "earned_received";
     private static final String PAGINATION_VIEW_ID_COLUMN="erid";
@@ -41,6 +37,8 @@ public class BillingResource extends AbstractRestResource {
     private static final String PAGINATION_VIEW_ORDER_COLUMN="eventtime";
     private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final List<String> PAGINATION_SELECT_COLUMNS = new ArrayList<String>();
+    private static final String webserverAddress = System.getProperty("webserverAddress");
+    private static final String downloadStatementBaseURL = "http://"+webserverAddress+":8080/mtm/statement/download/";
 
     static
     {
@@ -165,6 +163,63 @@ public class BillingResource extends AbstractRestResource {
     }
 
     @GET
+    @Path("/settlement/{vehicleid}/{consignerid}")
+    public Object performSettlementAsOnDate(@PathParam("vehicleid") Optional<String> vehicleIdArg, @PathParam("consignerid") Optional<String> consignerIdArg) {
+        long consignerId = Long.parseLong(consignerIdArg.get());
+        long vehicleId = Long.parseLong(vehicleIdArg.get());
+        Status status = new Status();
+
+        VehicleDao vehicleDao = new VehicleDao();
+        OwnerDao ownerDao = new OwnerDao();
+
+        Vehicle vehicle = (Vehicle)vehicleDao.getRecords(" vehicleid = "+vehicleId).get(0);
+        Owner owner = (Owner)ownerDao.getRecords(" ownerid = "+vehicle.getOwnerid()).get(0) ;
+
+        List<List<String>> consignerRecords = vehicleDao.executeQuery(" select name from consigner where consignerid = "+consignerId);
+        String consignerName = consignerRecords.get(0).get(0);
+
+
+        try {
+            dao.performBillingTillDate(consignerId, vehicleId);
+
+            // Send notification
+
+            Notification notification = new Notification();
+
+            notification.setMessagetitle(owner.getName()+" के गाडी का सेटलमेंट ");
+            notification.setMessagetext(owner.getName()+" के  गाडी नंबर " + vehicle.getRegistration_num()+" का "+consignerName+" के साथ हिसाब  हो गया है , पूरा हिसाब देखने के लिए डाउनलोड बटन दबाएं ");
+            //notification.setUserid(8);
+            //notification.setUsertype("OWNER");
+            notification.setNotificationtime(new Date());
+           // notification.setMessageid(1);
+           // notification.setImage_url("http://34.66.81.100:8080/mtm/resources/images/vehiclegeneraldocument/2?rand=0.3692373930824564");
+            notification.setFile_url(downloadStatementBaseURL+"/"+vehicleId+"/"+consignerId);
+            notification.setNotification_type("VEHICLE_BILLING_DONE");
+
+            DataNotification dataNotification = new DataNotification();
+            dataNotification.setData(notification);
+            //dataNotification.setToken("czQ6NYKATGGuQjnpAX6MHy:APA91bGHoK_CuXx9ZqArrObJDIIr1Qj0A7U2kKx0WIoUZy7L4MIB-l9su6NFAL6z9xK33Px8uUkjgozCF3k7Z-6j2UZvTYkbQyEZ6h9L-dYrSaO57emGwa8aJMcI2HlIfsGp5b5noKx5");
+            // dataNotification.setMessageType("NOTIFICATION_CHALLAN_UPLOAD");
+            com.mtm.beans.dto.Message message = new com.mtm.beans.dto.Message();
+            message.setMessage(dataNotification);
+
+            FCMNotificationSender.send(message,vehicleId,vehicle.getOwnerid(),consignerId, UserType.OWNER, true);
+
+
+            status.setMessage("SUCCESS");
+            status.setReturnCode(0);
+
+
+        } catch (Exception e) {
+            status.setReturnCode(1);
+            status.setMessage("FAILURE");
+            e.printStackTrace();
+        }
+
+        return status;
+    }
+
+    @GET
     @Path("/statement/getpaginated")
     public List<CreditDebit> getPaginatedRecords(@QueryParam("where") Optional<String> whereClause, @QueryParam("min") Optional<String> min, @QueryParam("max") Optional<String> max, @QueryParam("recordsPerPage") Optional<String> recordsPerPage) {
         List<List<String>> records = super.getPaginated(whereClause,min,max,recordsPerPage);
@@ -276,7 +331,7 @@ public class BillingResource extends AbstractRestResource {
 
 
         try {
-            final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generate(vehicleId,consignerId,null, null));
+            final java.nio.file.Path generatedPDFPath = Paths.get(PDFGeneratorUtil.generateChallans(vehicleId,consignerId,null, null));
 
             return Response.ok().entity(new StreamingOutput() {
 
