@@ -15,8 +15,12 @@ import org.joda.time.DateTimeZone;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Created by Admin on 10/12/2019.
@@ -25,6 +29,8 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 public class VehicleLocationResource extends AbstractRestResource {
     private static Dao dao = new VehicleLocationDao();
+    private static SimpleDateFormat istTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static SimpleDateFormat utcTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public VehicleLocationResource() {
         super(dao);
     }
@@ -32,9 +38,9 @@ public class VehicleLocationResource extends AbstractRestResource {
     private void setDate(VehicleLocation location)
     {
         Date date = new Date();
-        DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
-        DateTime nowIndia = DateTime.now(timeZoneIndia);
-        location.setLast_seen_at(nowIndia.toDate());
+        DateTimeZone timeUTC = DateTimeZone.UTC;
+        DateTime nowUTC = DateTime.now(timeUTC);
+        location.setLast_seen_at(nowUTC.toLocalDateTime().toDate());
     }
     @POST
     @Path("/location")
@@ -63,7 +69,16 @@ public class VehicleLocationResource extends AbstractRestResource {
     public List<Object> getLocation(@PathParam("vehicleid") Optional<String> vehicleid) {
 
         String whereClause = " vehicleid = "+vehicleid.get()+" and last_seen_at = (select max(last_seen_at) from vehicle_location where vehicleid = "+vehicleid.get()+")";
-        return get(whereClause);
+        VehicleLocation vehicleLocation = (VehicleLocation) get(whereClause).get(0);
+       /* long timeInMilliSeconds = vehicleLocation.getLast_seen_at().getTime();
+        int offset  = TimeZone.getTimeZone("Asia/Kolkata").getOffset(timeInMilliSeconds);
+
+        Date date = new Date(timeInMilliSeconds+offset);
+
+        vehicleLocation.setLast_seen_at(date);*/
+        List<Object> vehicleLocations = new ArrayList();
+        vehicleLocations.add(vehicleLocation);
+        return  vehicleLocations;
 
     }
 
@@ -84,17 +99,45 @@ public class VehicleLocationResource extends AbstractRestResource {
         whereClauseBuffer.append(" vehicleid = "+vehicleid.get());
         if(StringUtils.isNotEmpty(from))
         {
-            whereClauseBuffer.append(" and last_seen_at >= "+from);
+            whereClauseBuffer.append(" and last_seen_at >= "+getUTCTimeStr(from));
         }
 
         if(StringUtils.isNotEmpty("to"))
         {
-            whereClauseBuffer.append(" and last_seen_at <= "+to);
+            whereClauseBuffer.append(" and last_seen_at <= "+getUTCTimeStr(to));
         }
 
 
 
+
+
         return get(whereClauseBuffer.toString());
+
+    }
+
+    private static String getUTCTimeStr(String dateTime)
+    {
+        try {
+            istTimeFormat.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
+            Date date = istTimeFormat.parse(dateTime);
+            utcTimeFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return utcTimeFormat.format(date);
+
+            // Change timzone
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+
+    }
+
+    private static unqoute(String k)
+
+    public static void main(String args[])
+    {
+        String time = "2020-07-16 13:34:00";
+        System.out.println("Time is "+getUTCTimeStr(time));
 
     }
 }

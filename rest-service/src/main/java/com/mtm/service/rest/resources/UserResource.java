@@ -28,6 +28,7 @@ import java.util.List;
 public class UserResource extends  AbstractRestResource {
    // private static final String privacyPolicyHTMLLOcation = "C:/prj/mtm/privacy_policy.html";
     private static final String privacyPolicyHTMLLOcation = "/home/mtmuser/proj/deployed/mtm/privacy_policy.html";
+    private static final String creditsHTMLLOcation = "/home/mtmuser/proj/deployed/mtm/credits.html";
     private static UserDao dao = new UserDao();
 
     public UserResource() {
@@ -41,6 +42,20 @@ public class UserResource extends  AbstractRestResource {
     public InputStream viewHome()
     {
         File f = new File(privacyPolicyHTMLLOcation);
+        try {
+            return new FileInputStream(f);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @GET
+    @Path("/credits")
+    @Produces({MediaType.TEXT_HTML})
+    public InputStream viewCredits()
+    {
+        File f = new File(creditsHTMLLOcation);
         try {
             return new FileInputStream(f);
         } catch (FileNotFoundException e) {

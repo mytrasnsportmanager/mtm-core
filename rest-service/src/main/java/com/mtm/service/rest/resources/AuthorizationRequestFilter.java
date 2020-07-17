@@ -36,6 +36,8 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
         noAuthCheckURIList.add("mtm/login");
         noAuthCheckURIList.add("mtm/users");
         noAuthCheckURIList.add("mtm/privacy_policy");
+        noAuthCheckURIList.add("mtm/credits");
+        noAuthCheckURIList.add("mtm/version");
        // noAuthCheckURIList.add("mtm/vehicles");
        // noAuthCheckURIList.add("mtm/vehicles");
     }
@@ -62,7 +64,7 @@ public class AuthorizationRequestFilter implements ContainerRequestFilter {
         javax.servlet.http.Cookie[] cookies = req.getCookies();
         if(cookies!=null) {
             for (javax.servlet.http.Cookie cookie : cookies) {
-                System.out.println("Cookie Name " + cookie.getName() + ", value " + cookie.getValue());
+               // System.out.println("Cookie Name " + cookie.getName() + ", value " + cookie.getValue());
             }
         }
         Object userSession = session.getAttribute("user_session");

@@ -3,6 +3,7 @@ package com.mtm.dao.beans;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Created by Admin on 3/4/2019.
@@ -61,6 +62,7 @@ public enum DataType {
             case DATE:
             {
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
                 try {
                     if(value==null)
                         return value;

@@ -16,8 +16,8 @@ public class DateAsString  {
         DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
         DateTime nowIndia = DateTime.now(timeZoneIndia);
         System.out.println("Date is "+date);
-        System.out.println("Now in India is "+nowIndia.toDate());
-        //txn.setTxn_date(nowIndia.toDate());
+        System.out.println("Now in India is "+nowIndia.toLocalDateTime().toDate());
+        //txn.setTxn_date(nowIndia.toLocalDateTime().toDate());
 
 
     }

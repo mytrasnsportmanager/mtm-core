@@ -71,7 +71,7 @@ public class TxnResource extends  AbstractRestResource {
         Date date = new Date();
         DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
         DateTime nowIndia = DateTime.now(timeZoneIndia);
-        txn.setTxn_date(nowIndia.toDate());
+        txn.setTxn_date(nowIndia.toLocalDateTime().toDate());
         return create(txn);
     }
     @PATCH

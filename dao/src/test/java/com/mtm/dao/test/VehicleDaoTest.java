@@ -1,14 +1,15 @@
 package com.mtm.dao.test;
-import java.util.Calendar;
-import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;import java.util.concurrent.ThreadLocalRandom;
 
 import com.mtm.beans.dto.Vehicle;
+import com.mtm.beans.dto.VehicleLocation;
 import com.mtm.dao.VehicleDao;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -21,9 +22,34 @@ public class VehicleDaoTest {
     public static void main(String[] args)
     {
         VehicleDao vehicleDao = new VehicleDao();
+        VehicleLocation vehicleLocation = new VehicleLocation();
+        Date date = new Date();
+        DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
+        DateTime nowIndia = DateTime.now(timeZoneIndia);
+      //  System.out.println("time is "+nowIndia.toDateTime().toDate());
+        vehicleLocation.setLast_seen_at(nowIndia.toLocalDateTime().toDate());
+      //  System.out.println("time is "+vehicleLocation.getLast_seen_at());
 
+        DateFormat simple = new SimpleDateFormat("dd MMM yyyy HH:mm:ss:SSS Z");
+       // simple.setTimeZone(TimeZone.getTimeZone("UTC"));
+        // Creating date from milliseconds
+ //= System.currentTimeMillis();
+        //int offset = TimeZone.getDefault().getOffset(date);        // using Date() constructor
+       // Date result = new java.util.Date(1594912469000l);
+
+        // Formatting Date according to the
+        // given format
+       // System.out.println(simple.format(result));
+
+        long value = 1594892669000l;
         Calendar calendar =  Calendar.getInstance();
-        calendar.setTime(new Date());
+        calendar.setTimeInMillis(value);
+        int offset2  = TimeZone.getTimeZone("Asia/Kolkata").getOffset(value);
+        Date result2 = new java.util.Date(value - offset2);
+        System.out.println(calendar.getTime());
+        //System.out.println(result2);
+        //Calendar  calendar = Calendar.getInstance();
+        /*calendar.setTime(new Date());
         System.out.println(" YearMonth is "+calendar.get(Calendar.YEAR)+","+calendar.get(Calendar.MONTH));
         calendar.add(Calendar.MONTH, -1);
         System.out.println(" YearMonth is "+calendar.get(Calendar.YEAR)+","+calendar.get(Calendar.MONTH));
@@ -43,7 +69,7 @@ public class VehicleDaoTest {
            // vehicleDao.runUpdateQuery(query);
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
+        }*/
 
 
 

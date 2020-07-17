@@ -105,7 +105,7 @@ public class TripResource extends AbstractRestResource{
         Date date = new Date();
         DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
         DateTime nowIndia = DateTime.now(timeZoneIndia);
-        trip.setStarttime(nowIndia.toDate());
+        trip.setStarttime(nowIndia.toLocalDateTime().toDate());
         double expectedMileage = 0;
         double distance = 0;
         // Calculate the expected fuel consumption for this trip

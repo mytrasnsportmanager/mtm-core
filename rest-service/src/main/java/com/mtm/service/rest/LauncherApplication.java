@@ -78,6 +78,7 @@ public class LauncherApplication extends Application<RestConfiguration> {
         environment.jersey().register(TripResource.class);
         environment.jersey().register(NotificationResource.class);
         environment.jersey().register(AccountantResource.class);
+        environment.jersey().register(AndroidVersionResource.class);
 
         BillingService billingService = new BillingService();
         billingService.startAsync();

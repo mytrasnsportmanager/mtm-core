@@ -240,7 +240,7 @@ public class VehicleResource extends AbstractRestResource {
         Date date = new Date();
         DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
         DateTime nowIndia = DateTime.now(timeZoneIndia);
-        tripToBeRepeated.setStarttime(nowIndia.toDate());
+        tripToBeRepeated.setStarttime(nowIndia.toLocalDateTime().toDate());
         Status status = new Status();
         long insertedId = tripDao.insert(tripToBeRepeated);
         status.setMessage("SUCCESS");
@@ -272,6 +272,24 @@ public class VehicleResource extends AbstractRestResource {
         UserSession userSession = (UserSession) session.getAttribute("user_session");
         userSession.getVehicleIdList().add(vehicleid);
         session.setAttribute("user_session",userSession);
+    }
+
+    @GET
+
+    @Path("/vehicles/{consignerid}/{ownerid}")
+
+    public List<Record> getVehiclesOwnerConsigners(@PathParam("consignerid") Optional<String> consignerId, @PathParam("ownerid") Optional<String> ownerId)
+    {
+        long consignerIdVal = Long.parseLong(consignerId.get());
+        long ownerIdVal = Long.parseLong(ownerId.get());
+        String query = "select * from vehicle where vehicleid in (select vehicleid from trip where routeid in (select routeid from route where consignerid ="+consignerIdVal+" and ownerid ="+ownerIdVal+" ) " +
+                " union all select vehicleid from trip_detailed_hist where consignerid = " +consignerIdVal+
+                " union all select vehicleid from txn where consignerid = " +consignerIdVal+") " +
+                " and ownerid = "+ownerIdVal;
+        List<Record> records = dao.getConvertedRecordsForQuery(query);
+        return records;
+
+
     }
 
 
