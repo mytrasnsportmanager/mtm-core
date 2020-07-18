@@ -99,12 +99,12 @@ public class VehicleLocationResource extends AbstractRestResource {
         whereClauseBuffer.append(" vehicleid = "+vehicleid.get());
         if(StringUtils.isNotEmpty(from))
         {
-            whereClauseBuffer.append(" and last_seen_at >= "+getUTCTimeStr(from));
+            whereClauseBuffer.append(" and last_seen_at >= "+getUTCTimeStr(unqoute(from)));
         }
 
         if(StringUtils.isNotEmpty("to"))
         {
-            whereClauseBuffer.append(" and last_seen_at <= "+getUTCTimeStr(to));
+            whereClauseBuffer.append(" and last_seen_at <= "+getUTCTimeStr(unqoute(to)));
         }
 
 
@@ -132,12 +132,15 @@ public class VehicleLocationResource extends AbstractRestResource {
 
     }
 
-    private static unqoute(String k)
+    private static String unqoute(String key)
+    {
+      return  key.replaceAll("'","");
+    }
 
     public static void main(String args[])
     {
-        String time = "2020-07-16 13:34:00";
-        System.out.println("Time is "+getUTCTimeStr(time));
+        String time = "'2020-07-16 13:34:00'";
+        System.out.println("Time is "+unqoute(time));
 
     }
 }
