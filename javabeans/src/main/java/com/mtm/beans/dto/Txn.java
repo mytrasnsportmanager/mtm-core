@@ -120,6 +120,26 @@ public class Txn extends Record {
     private long consignerid;
     private String txn_mode;
     private long billingid;
+    private String is_owner_funded;
+    private String remarks;
+
+    @JsonProperty
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
+
+    @JsonProperty
+    public String getIs_owner_funded() {
+        return is_owner_funded;
+    }
+
+    public void setIs_owner_funded(String is_owner_funded) {
+        this.is_owner_funded = is_owner_funded;
+    }
 
     public long getRowid() {
         return rowid;

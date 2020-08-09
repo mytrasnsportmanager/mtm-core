@@ -38,7 +38,7 @@ public class BillingResource extends AbstractRestResource {
     private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final List<String> PAGINATION_SELECT_COLUMNS = new ArrayList<String>();
     private static final String webserverAddress = System.getProperty("webserverAddress");
-    private static final String downloadStatementBaseURL = "http://"+webserverAddress+":8080/mtm/statement/download/";
+    private static final String downloadStatementBaseURL = "http://"+webserverAddress+"/mtm/statement/download/";
 
     static
     {

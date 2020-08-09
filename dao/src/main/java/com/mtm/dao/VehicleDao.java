@@ -2,6 +2,7 @@ package com.mtm.dao;
 
 import com.mtm.beans.dto.Record;
 import com.mtm.beans.dto.Vehicle;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,9 @@ public class VehicleDao extends AbstractDao{
                 ((Vehicle)vehicleRecord).setDriverid(Long.parseLong(record.get(3)));
                 ((Vehicle)vehicleRecord).setModel_num(Integer.parseInt(record.get(4)));
                 ((Vehicle)vehicleRecord).setVehicle_type(record.get(5));
+                ((Vehicle)vehicleRecord).setImage_url(record.get(6));
+                ((Vehicle)vehicleRecord).setCurrent_fuel_level(Double.parseDouble(record.get(7)));
+                ((Vehicle)vehicleRecord).setExpected_mileage(Double.parseDouble(record.get(8)));
             }
             vehicleRecords.add(vehicleRecord);
         }
@@ -53,6 +57,7 @@ public class VehicleDao extends AbstractDao{
                 ((Vehicle)vehicleRecord).setVehicleid(Integer.parseInt(record.get(0)));
                 ((Vehicle)vehicleRecord).setRegistration_num(record.get(1));
                 ((Vehicle)vehicleRecord).setOwnerid(Integer.parseInt(record.get(2)));
+               if(StringUtils.isNotEmpty(record.get(3)))
                 ((Vehicle)vehicleRecord).setDriverid(Long.parseLong(record.get(3)));
                 ((Vehicle)vehicleRecord).setModel_num(Integer.parseInt(record.get(4)));
                 ((Vehicle)vehicleRecord).setVehicle_type(record.get(5));

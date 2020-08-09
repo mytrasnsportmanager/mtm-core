@@ -5,7 +5,11 @@ import com.mtm.beans.RateType;
 import com.mtm.beans.Status;
 import com.mtm.beans.dto.Trip;
 import com.mtm.beans.dto.TripDetail;
+import com.mtm.beans.dto.Vehicle;
+import com.mtm.beans.dto.VehicleFuelConsumption;
 import com.mtm.dao.TripDao;
+import com.mtm.dao.VehicleDao;
+import com.mtm.dao.VehicleFuelConsumptionDao;
 import com.mtm.service.rest.RestResourceType;
 import com.mtm.service.rest.auth.AuthorizationRule;
 import com.mtm.service.rest.auth.TripAuthorizationHandler;
@@ -122,7 +126,25 @@ public class TripResource extends AbstractRestResource{
         }
         double fuel_needed = distance/expectedMileage;
         trip.setExpected_fuel_consumed(fuel_needed);
-         return create(trip);
+        Status status =  ((Status)(create(trip)));
+
+        VehicleFuelConsumption vehicleFuelConsumption = new VehicleFuelConsumption();
+        vehicleFuelConsumption.setVehicleid(tripParam.getVehicleid());
+        vehicleFuelConsumption.setConsumption_amt(fuel_needed);
+        vehicleFuelConsumption.setConsumption_date(nowIndia.toLocalDateTime().toDate());
+        vehicleFuelConsumption.setTripid(status.getInsertedId());
+        VehicleFuelConsumptionDao vehicleFuelConsumptionDao = new VehicleFuelConsumptionDao();
+        vehicleFuelConsumptionDao.insert(vehicleFuelConsumption);
+
+        Vehicle vehicle = new Vehicle();
+        vehicle.setCurrent_fuel_level(vehicle.getCurrent_fuel_level() - fuel_needed);
+        VehicleDao vehicleDao = new VehicleDao();
+        vehicleDao.insert(vehicle);
+
+        return status;
+
+
+
     }
 
 

@@ -154,7 +154,7 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
     public double getUnibilledReceived(long consignerid, long vehicleid)
     {
         double unbilledReceived = 0;
-        String unbilledReceivedQuery = "select sum(amount) as amount_received from txn  where (billingid is null or billingid =0 ) and  vehicleid="+vehicleid+" and consignerid ="+consignerid+" and upper(txn_type) in (1,2,3,4,5,6,7,8,9)" ;
+        String unbilledReceivedQuery = "select sum(amount) as amount_received from txn  where (is_owner_funded is null or is_owner_funded='N') and (billingid is null or billingid =0 ) and  vehicleid="+vehicleid+" and consignerid ="+consignerid+" and upper(txn_type) in (1,2,3,4,5,6,7,8,9)" ;
         List<List<String>> results = dao.executeQuery(unbilledReceivedQuery);
         if(results==null || results.size()==0 || results.get(0)==null)
             unbilledReceived = 0;
@@ -327,20 +327,21 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
 
             String earnedReceivedHistoryInsertQuery = "insert into earned_received_hist \n" +
                     "select v.registration_num AS registration_num,(t.work_done * r.rate) AS amount,t.starttime AS eventtime,'earned' \n" +
-                    "AS type,t.challanid AS referenceid,0 AS work,concat('E',t.tripid) AS erid,t.vehicleid AS vehicleid,r.consignerid AS consignerid, "+billingid+" as billingid from \n" +
+                    "AS type,t.challanid AS referenceid,0 AS work,concat('E',t.tripid) AS erid,t.vehicleid AS vehicleid,r.consignerid AS consignerid, "+billingid+" as billingid,'N' from \n" +
                     "((trip t join route r on((t.routeid = r.routeid))) join vehicle v on((t.vehicleid = v.vehicleid))) where t.vehicleid = "+vehicleid+" and r.consignerid = "+consignerid+" union all select v2.registration_num AS \n" +
                     "registration_num,tx.amount AS amount,tx.txn_date AS txn_Date,'received' AS type,tx.txnid AS txnid,tx.txn_type AS txn_type,concat('T',tx.txnid)\n" +
-                    " AS erid,tx.vehicleid AS vehicleid,tx.consignerid AS consignerid, "+billingid+" as billingid from (txn tx join vehicle v2 on((tx.vehicleid = v2.vehicleid)))\n" +
-                    " where tx.vehicleid = "+vehicleid + " and tx.consignerid = "+consignerid;
+                    " AS erid,tx.vehicleid AS vehicleid,tx.consignerid AS consignerid, "+billingid+" as billingid, 'N' from (txn tx join vehicle v2 on((tx.vehicleid = v2.vehicleid)))\n" +
+                    " where (tx.is_owner_funded is null or tx.is_owner_funded='N') and tx.vehicleid = "+vehicleid + " and tx.consignerid = "+consignerid;
 
             double totalReceivableAmount = getTotalReceivableAmount(consignerid,vehicleid);
             String updateBillDetails = "update monthly_billing set amount = "+totalReceivableAmount +" where billingid = "+billingid;
             String updateTripsBillingIdQuery = "delete from trip  where vehicleid ="+vehicleid+" and routeid in (select routeid from route where consignerid = "+consignerid+" and ownerid = "+ownerid+") ";
-            String updateTxnsBillingIdQuery = "delete from txn where  vehicleid ="+vehicleid+" and consignerid ="+consignerid;
+            String updateTxnsBillingIdQuery = "delete from txn where (is_owner_funded is null or is_owner_funded='N') and vehicleid ="+vehicleid+" and consignerid ="+consignerid;
             statement.executeUpdate(tripHistoryInsertQuery);
             statement.executeUpdate(earnedReceivedHistoryInsertQuery);
             statement.executeUpdate(updateBillDetails);
             statement.executeUpdate(updateTripsBillingIdQuery);
+
             statement.executeUpdate(updateTxnsBillingIdQuery);
 
         } catch (Exception e) {
@@ -409,7 +410,7 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
         }
 
         String earningsAndReceivedQuery =  null;
-        earningsAndReceivedQuery = "select  v.registration_num, (t.work_done * r.rate) as amount , t.starttime, 'earned' as type, t.challanid, '0' as work, t.image_url, t.tripid  from trip t inner join route r on t.routeid = r.routeid  inner join vehicle v on t.vehicleid = v.vehicleid where (t.billingid is null or t.billingid =0 ) and t.vehicleid = " + vehicleid + " and r.consignerid = " + consignerid + currentDateFilterClause+ " union all select v.registration_num , tx.amount , tx.txn_Date, 'received' as type , tx.txnid , tx.txn_type, '' as image_url, tx.tripid  from txn tx inner join vehicle v on tx.vehicleid=v.vehicleid where (tx.billingid is null or tx.billingid =0 ) and  tx.vehicleid =" + vehicleid + " and tx.consignerid = " + consignerid+currentTxnFilterClause;
+        earningsAndReceivedQuery = "select  v.registration_num, (t.work_done * r.rate) as amount , t.starttime, concat('earned - ',t.work_done,' x ',r.rate,' ',r.rate_type,', ',substring_index(r.source,',',1),' to ',substring_index(r.destination,',',1)) AS type, t.challanid, '0' as work, t.image_url, t.tripid  from trip t inner join route r on t.routeid = r.routeid  inner join vehicle v on t.vehicleid = v.vehicleid where (t.billingid is null or t.billingid =0 ) and t.vehicleid = " + vehicleid + " and r.consignerid = " + consignerid + currentDateFilterClause+ " union all select v.registration_num , tx.amount , tx.txn_Date, 'received' as type , tx.txnid , tx.txn_type, '' as image_url, tx.tripid  from txn tx inner join vehicle v on tx.vehicleid=v.vehicleid where (tx.is_owner_funded is null or tx.is_owner_funded='N') and (tx.billingid is null or tx.billingid =0 ) and  tx.vehicleid =" + vehicleid + " and tx.consignerid = " + consignerid+currentTxnFilterClause;
         results = dao.executeQuery(earningsAndReceivedQuery);
 
         if(includeBilledRecords) {
@@ -439,14 +440,16 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
            CreditDebit creditDebit = new CreditDebit();
            creditDebit.setAmount(Double.parseDouble(record.get(1)));
            creditDebit.setDate(dateFormat.parse(record.get(2)));
-           creditDebit.setType(record.get(3));
+
+
+           creditDebit.setType(record.get(3).replaceAll("earned","ट्रिप किराया/कमाई").replaceAll("received","ट्रांसपोर्टर का भुगतान"));
+
            creditDebit.setId(record.get(4));
            creditDebit.setTxn_type(TxnType.getFromValue(Integer.parseInt(record.get(5))));
            creditDebit.setChallanImageURL(record.get(6));
            creditDebit.setTripid(Long.parseLong(record.get(7)));
 
             creditDebit.setRegistration_num(registration_num);
-
 
            creditDebits.add(creditDebit);
         }

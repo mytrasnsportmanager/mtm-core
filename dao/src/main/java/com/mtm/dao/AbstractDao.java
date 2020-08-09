@@ -245,6 +245,10 @@ public abstract class AbstractDao implements  Dao {
 
         for(Column column : columns)
         {
+
+            if(record.isColumnExcludedForPersistence(column.getName()))
+                continue;
+
             Method getterMethod = recordBeanGetterMethods.get(column);
             Object columnValue = null;
 

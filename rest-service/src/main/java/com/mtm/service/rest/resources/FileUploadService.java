@@ -32,7 +32,7 @@ public class FileUploadService {
     private static final String UPLOAD_FOLDER = "/home/mtmuser/proj/deployed/mtm/resources/images/";
     //private static final String UPLOAD_FOLDER = "C:/prj/mtm/imgs/";
     private static final String webserverAddress = System.getProperty("webserverAddress");
-    private static final String baseURL = "http://"+webserverAddress+":8080/mtm/resources/images";
+    private static final String baseURL = "http://"+webserverAddress+"/mtm/resources/images";
     private static final OwnerDao ownerDao = new OwnerDao();
     private static final ConsignerDao consignerDao = new ConsignerDao();
     private static final DriverDao driverDao = new DriverDao();

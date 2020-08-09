@@ -87,10 +87,45 @@ public class VehicleResource extends AbstractRestResource {
     public Object patchVehicleRecord(Vehicle record)
 
     {
-        if(patch(record)==1)
-            return new Status("SUCCESS",0,0);
+        long updatedCount = 0;
+
+        updatedCount = patch(record);
+
+
+        if(record.getKms_without_trip()!=0)
+        {
+            VehicleFuelConsumption vehicleFuelConsumption = new VehicleFuelConsumption();
+           //vehicleFuelConsumption.
+            Vehicle vehicle = (Vehicle)dao.getConvertedRecords("vehicleid = "+record.getVehicleid()).get(0);
+            double mileage = vehicle.getExpected_mileage();
+            double current_fuel_level = vehicle.getCurrent_fuel_level();
+            double fuel_spent = record.getKms_without_trip() / mileage;
+            current_fuel_level = current_fuel_level - fuel_spent;
+            vehicle.setCurrent_fuel_level(current_fuel_level);
+            patch(vehicle);
+
+
+            Date date = new Date();
+            DateTimeZone timeZoneIndia = DateTimeZone.forID( "Asia/Kolkata" );
+            DateTime nowIndia = DateTime.now(timeZoneIndia);
+            vehicleFuelConsumption.setConsumption_date(nowIndia.toLocalDateTime().toDate());
+            vehicleFuelConsumption.setConsumption_amt(fuel_spent);
+            if(StringUtils.isNotEmpty(record.getKms_without_trip_remarks()))
+                vehicleFuelConsumption.setRemarks(record.getKms_without_trip_remarks());
+            vehicleFuelConsumption.setVehicleid(record.getVehicleid());
+            VehicleFuelConsumptionDao vehicleFuelConsumptionDao = new VehicleFuelConsumptionDao();
+            vehicleFuelConsumptionDao.insert(vehicleFuelConsumption);
+
+
+        }
+
+        if(updatedCount==1)
+        return new Status("SUCCESS",0,0);
         else
-            return new Status("FAILED",1,0);
+        return new Status("FAILED",1,0);
+
+
+
     }
 
 
@@ -110,7 +145,20 @@ public class VehicleResource extends AbstractRestResource {
         String authorizedVehicleList = getAuthorizedVehicleList();
         if(StringUtils.isNotEmpty(authorizedVehicleList))
             whereClauseStr.append(" and vehicleid in ("+authorizedVehicleList+" )");
-        return get(whereClauseStr.toString());
+
+        List<Object> vehicles = get(whereClauseStr.toString());
+        for(Object vehicleObj : vehicles)
+        {
+            Vehicle vehicle = (Vehicle)vehicleObj;
+            long driverId = vehicle.getDriverid();
+            DriverDao driverDao = new DriverDao();
+            List<Object> vehicleDrivers  = driverDao.getRecords(" driverid = "+driverId);
+           if(vehicleDrivers!=null && vehicleDrivers.size() > 0) {
+               VehicleDriver vehicleDriver = (VehicleDriver) (vehicleDrivers.get(0));
+               vehicle.setDriver_name(vehicleDriver.getName());
+           }
+        }
+        return vehicles;
 
     }
 

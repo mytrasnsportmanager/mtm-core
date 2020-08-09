@@ -133,6 +133,30 @@ public class Vehicle extends Record {
     private String driver_name;
     private long driver_contact;
 
+    private double kms_without_trip;
+
+    @JsonProperty
+    public String getKms_without_trip_remarks() {
+        return kms_without_trip_remarks;
+    }
+
+    public void setKms_without_trip_remarks(String kms_without_trip_remarks) {
+        this.kms_without_trip_remarks = kms_without_trip_remarks;
+    }
+
+    private String kms_without_trip_remarks;
+
+
+
+    @JsonProperty
+    public double getKms_without_trip() {
+        return kms_without_trip;
+    }
+
+    public void setKms_without_trip(double kms_without_trip) {
+        this.kms_without_trip = kms_without_trip;
+    }
+
     private double current_fuel_level;
 
     @JsonProperty
@@ -142,5 +166,13 @@ public class Vehicle extends Record {
 
     public void setCurrent_fuel_level(double current_fuel_level) {
         this.current_fuel_level = current_fuel_level;
+    }
+
+    public boolean isColumnExcludedForPersistence(String columnName)
+    {
+        if(columnName.equalsIgnoreCase("kms_without_trip") || columnName.equalsIgnoreCase("kms_without_trip_remarks") )
+            return true;
+        else
+            return false;
     }
 }

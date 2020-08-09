@@ -49,6 +49,7 @@ public class TxnResource extends  AbstractRestResource {
         PAGINATION_SELECT_COLUMNS.add("consignerid" );
         PAGINATION_SELECT_COLUMNS.add("txn_mode"    );
         PAGINATION_SELECT_COLUMNS.add("billingid"   );
+        PAGINATION_SELECT_COLUMNS.add("remarks"   );
     }
 
 
@@ -76,7 +77,7 @@ public class TxnResource extends  AbstractRestResource {
     }
     @PATCH
     @Path("/txns")
-    public Object patchVehicleRecord(Txn record)
+    public Object patchTransaction(Txn record)
 
     {
         if(patch(record)==1)
@@ -160,7 +161,8 @@ public class TxnResource extends  AbstractRestResource {
             txn.setTxn_mode(record.get(7));
             if(record.get(8)!=null)
             txn.setBillingid(Long.parseLong(record.get(8)));
-            txn.setRowid(Long.parseLong(record.get(9)));
+            txn.setRemarks(record.get(9));
+            txn.setRowid(Long.parseLong(record.get(10)));
             txns.add(txn);
 
 
