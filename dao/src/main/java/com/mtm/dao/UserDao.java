@@ -9,6 +9,7 @@ import com.mtm.beans.dto.*;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,7 +32,24 @@ public class UserDao extends AbstractDao{
     }
 
     public List<Record> getConvertedRecords(String whereClause) {
-        return null;
+        List<List<String>> records = get(whereClause);
+        List<Record> userRecords = new ArrayList<>();
+        User user = new User();
+        for(List<String> record: records)
+        {
+            user.setUserid(Long.parseLong(record.get(0)));
+            user.setName(record.get(1));
+            user.setAddress(record.get(2));
+            user.setContact(Long.parseLong(record.get(3)));
+            user.setUsertype(record.get(4));
+           // user.setPassphrase(record.get(4));
+            user.setDevice_id(record.get(7));
+            userRecords.add(user);
+
+        }
+
+
+        return userRecords;
     }
 
     public Status addUser(User user)

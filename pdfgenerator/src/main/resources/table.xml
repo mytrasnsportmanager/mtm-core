@@ -145,35 +145,35 @@
                             <xsl:for-each select="//businessDetails">
                                 <fo:table-row>
                                     <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                        <fo:block>
+                                        <fo:block font-family="Amiko">
                                             <fo:basic-link external-destination="url('{@link}')" color="blue">
                                                 <xsl:value-of select="date"/>
                                             </fo:basic-link>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                        <fo:block>
+                                        <fo:block font-family="Amiko">
                                             <fo:basic-link external-destination="url('{@link}')" color="blue">
                                                 <xsl:value-of select="amount"/>
                                             </fo:basic-link>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                        <fo:block>
+                                        <fo:block font-family="Amiko">
                                             <fo:basic-link external-destination="url('{@link}')" color="blue">
                                                 <xsl:value-of select="type"/>
                                             </fo:basic-link>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                        <fo:block>
+                                        <fo:block font-family="Amiko">
                                             <fo:basic-link external-destination="url('{@link}')" color="blue">
                                                 <xsl:value-of select="id"/>
                                             </fo:basic-link>
                                         </fo:block>
                                     </fo:table-cell>
                                     <fo:table-cell padding="1mm" border-width="0.25mm" border-style="solid">
-                                        <fo:block>
+                                        <fo:block font-family="Amiko">
                                             <fo:basic-link external-destination="url('{@link}')" color="blue">
                                                 <xsl:value-of select="txn_type"/>
                                             </fo:basic-link>

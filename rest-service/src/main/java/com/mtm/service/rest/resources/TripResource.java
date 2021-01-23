@@ -10,6 +10,7 @@ import com.mtm.beans.dto.VehicleFuelConsumption;
 import com.mtm.dao.TripDao;
 import com.mtm.dao.VehicleDao;
 import com.mtm.dao.VehicleFuelConsumptionDao;
+import com.mtm.notification.TripNotificatSender;
 import com.mtm.service.rest.RestResourceType;
 import com.mtm.service.rest.auth.AuthorizationRule;
 import com.mtm.service.rest.auth.TripAuthorizationHandler;
@@ -41,6 +42,8 @@ import java.util.List;
 
 public class TripResource extends AbstractRestResource{
     private static TripDao dao = new TripDao();
+    private static VehicleDao vehicleDao = new VehicleDao();
+    VehicleFuelConsumptionDao vehicleFuelConsumptionDao = new VehicleFuelConsumptionDao();
     private static final String PAGINATION_VIEW_NAME = "trip_detailed";
     private static final String PAGINATION_VIEW_ID_COLUMN="tripid";
     private static final String PAGINATION_VIEW_ENTITY_ID_COLUMN="vehicleid";
@@ -49,6 +52,7 @@ public class TripResource extends AbstractRestResource{
     private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private TripAuthorizationHandler tripAuthorizationHandler = new TripAuthorizationHandler();
     private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
+    private TripNotificatSender tripNotificatSender = new TripNotificatSender();
 
 
     public void setTrip(Trip trip) {
@@ -136,10 +140,12 @@ public class TripResource extends AbstractRestResource{
         VehicleFuelConsumptionDao vehicleFuelConsumptionDao = new VehicleFuelConsumptionDao();
         vehicleFuelConsumptionDao.insert(vehicleFuelConsumption);
 
-        Vehicle vehicle = new Vehicle();
-        vehicle.setCurrent_fuel_level(vehicle.getCurrent_fuel_level() - fuel_needed);
         VehicleDao vehicleDao = new VehicleDao();
-        vehicleDao.insert(vehicle);
+        Vehicle vehicle = (Vehicle)vehicleDao.getConvertedRecords(" vehicleid = "+trip.getVehicleid()).get(0);
+        vehicle.setCurrent_fuel_level(vehicle.getCurrent_fuel_level() - fuel_needed);
+        vehicleDao.patch(vehicle);
+
+        tripNotificatSender.notifyOwnerAndConsigner(status.getInsertedId());
 
         return status;
 
@@ -153,6 +159,22 @@ public class TripResource extends AbstractRestResource{
     public Object patchVehicleRecord(Trip tripParam)
 
     {
+
+
+        Trip tripFromDatabase = (Trip)dao.getConvertedRecords("tripid = "+tripParam.getTripid()).get(0);
+        if(tripParam.getExpected_fuel_consumed() != 0d) {
+            Vehicle vehicle = (Vehicle) vehicleDao.getConvertedRecords("vehicleid = " + tripFromDatabase.getVehicleid()).get(0);
+            double revised_fuel_level = (vehicle.getCurrent_fuel_level() + tripFromDatabase.getExpected_fuel_consumed()) - tripParam.getExpected_fuel_consumed();
+            vehicle.setCurrent_fuel_level(revised_fuel_level);
+            vehicleDao.patch(vehicle);
+        }
+
+        VehicleFuelConsumption vehicleFuelConsumption = (VehicleFuelConsumption)vehicleFuelConsumptionDao.getConvertedRecords("tripid = "+tripParam.getTripid()).get(0);
+        vehicleFuelConsumption.setConsumption_amt(tripParam.getExpected_fuel_consumed());
+        vehicleFuelConsumptionDao.patch(vehicleFuelConsumption);
+
+
+
         trip = tripParam;
         if(patch(trip)==1)
             return new Status("SUCCESS",0,0);
@@ -186,6 +208,17 @@ public class TripResource extends AbstractRestResource{
     {
 
         Status status = new Status();
+
+        Trip tripFromDatabase = (Trip)dao.getConvertedRecords("tripid = "+tripId.get()).get(0);
+        Vehicle vehicle = (Vehicle)vehicleDao.getConvertedRecords("vehicleid = "+tripFromDatabase.getVehicleid()).get(0);
+        double revised_fuel_level = vehicle.getCurrent_fuel_level() + tripFromDatabase.getExpected_fuel_consumed();
+        vehicle.setCurrent_fuel_level(revised_fuel_level);
+        vehicleDao.patch(vehicle);
+        vehicleFuelConsumptionDao.delete("tripid = "+tripId.get());
+
+
+
+
         if(dao.delete(" tripid = "+tripId.get())==1) {
             status.setMessage("SUCEESS");
             status.setReturnCode(0);
@@ -285,6 +318,11 @@ public class TripResource extends AbstractRestResource{
         String whereClause = " tripid = "+tripId.get();
         return get(whereClause);
 
+    }
+
+    public static void main (String[] args)
+    {
+        System.out.println(-200-300);
     }
 
 

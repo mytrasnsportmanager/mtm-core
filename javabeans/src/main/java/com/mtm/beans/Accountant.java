@@ -1,11 +1,12 @@
 package com.mtm.beans;
 
 import com.mtm.beans.dto.Record;
+import com.mtm.beans.dto.User;
 
 /**
  * Created by Admin on 5/29/2020.
  */
-public class Accountant extends Record {
+public class Accountant extends User {
     public String getName() {
         return name;
     }

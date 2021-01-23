@@ -27,8 +27,7 @@ public class VehicleDao extends AbstractDao{
         for(List<String> record : records)
         {
             Record vehicleRecord = new Vehicle();
-            for(String columnValue : record)
-            {
+
                 ((Vehicle)vehicleRecord).setVehicleid(Integer.parseInt(record.get(0)));
                 ((Vehicle)vehicleRecord).setRegistration_num(record.get(1));
                 ((Vehicle)vehicleRecord).setOwnerid(Integer.parseInt(record.get(2)));
@@ -38,7 +37,7 @@ public class VehicleDao extends AbstractDao{
                 ((Vehicle)vehicleRecord).setImage_url(record.get(6));
                 ((Vehicle)vehicleRecord).setCurrent_fuel_level(Double.parseDouble(record.get(7)));
                 ((Vehicle)vehicleRecord).setExpected_mileage(Double.parseDouble(record.get(8)));
-            }
+
             vehicleRecords.add(vehicleRecord);
         }
         return vehicleRecords;

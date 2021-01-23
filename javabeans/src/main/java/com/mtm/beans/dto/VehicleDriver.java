@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * Created by Admin on 9/15/2019.
  */
-public class VehicleDriver extends Record {
+public class VehicleDriver extends User {
     public long getDriverid() {
         return driverid;
     }

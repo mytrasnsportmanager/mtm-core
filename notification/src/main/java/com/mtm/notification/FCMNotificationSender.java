@@ -283,9 +283,11 @@ public class FCMNotificationSender {
 
     public static void main (String[] args) {
 
-        for (int i = 4; i < 5; i++) {
+        String deviceToken = "ciuRICo7TOqmIq-NqCOzV9:APA91bEXGfacE7vleOibLuAekWiNyi31bcpZXqjq_SoHqOj5niURISAuv4Aqa8Un3fM8iHRuVqKcYASw_r20Zq1Kbcmr0w0IOaatvo9igmvWMA_U4MXhIs7FB55Ithzo30ue42_gt-53";
+
+        for (int i = 4; i < 500; i++) {
             Notification notification = new Notification();
-            notification.setUser_device_id("czQ6NYKATGGuQjnpAX6MHy:APA91bGHoK_CuXx9ZqArrObJDIIr1Qj0A7U2kKx0WIoUZy7L4MIB-l9su6NFAL6z9xK33Px8uUkjgozCF3k7Z-6j2UZvTYkbQyEZ6h9L-dYrSaO57emGwa8aJMcI2HlIfsGp5b5noKx5");
+            notification.setUser_device_id(deviceToken);
             notification.setMessagetitle("A test message" + i);
             notification.setMessagetext("This is a message sent by mtm web server " + i);
             notification.setUserid(8);
@@ -294,15 +296,21 @@ public class FCMNotificationSender {
             notification.setMessageid(1);
             notification.setImage_url("http://34.66.81.100:8080/mtm/resources/images/vehiclegeneraldocument/2?rand=0.3692373930824564");
             notification.setFile_url("http://34.66.81.100:8080/mtm/resources/images/vehiclegeneraldocument/2?rand=0.3692373930824564");
-            notification.setNotification_type("NOTIFICATION_CHALLAN_UPLOAD");
+            notification.setNotification_type("DRIVER_LOCATION_SEEK_REQUEST");
 
             DataNotification dataNotification = new DataNotification();
             dataNotification.setData(notification);
-            dataNotification.setToken("czQ6NYKATGGuQjnpAX6MHy:APA91bGHoK_CuXx9ZqArrObJDIIr1Qj0A7U2kKx0WIoUZy7L4MIB-l9su6NFAL6z9xK33Px8uUkjgozCF3k7Z-6j2UZvTYkbQyEZ6h9L-dYrSaO57emGwa8aJMcI2HlIfsGp5b5noKx5");
+            dataNotification.setToken(deviceToken);
            // dataNotification.setMessageType("NOTIFICATION_CHALLAN_UPLOAD");
             com.mtm.beans.dto.Message message = new com.mtm.beans.dto.Message();
             message.setMessage(dataNotification);
             //message.s
+
+            try {
+                Thread.sleep(4000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             send(message);
         }

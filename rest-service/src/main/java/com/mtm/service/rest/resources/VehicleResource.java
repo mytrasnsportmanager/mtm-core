@@ -291,6 +291,14 @@ public class VehicleResource extends AbstractRestResource {
         tripToBeRepeated.setStarttime(nowIndia.toLocalDateTime().toDate());
         Status status = new Status();
         long insertedId = tripDao.insert(tripToBeRepeated);
+
+
+        Vehicle vehicle = (Vehicle)dao.getConvertedRecords(" vehicleid = "+tripToBeRepeated.getVehicleid()).get(0);
+        vehicle.setCurrent_fuel_level(vehicle.getCurrent_fuel_level() - tripToBeRepeated.getExpected_fuel_consumed());
+        dao.patch(vehicle);
+
+
+
         status.setMessage("SUCCESS");
         status.setReturnCode(0);
         status.setInsertedId(insertedId);

@@ -20,14 +20,13 @@ public class AccountantDao extends AbstractDao {
         for(List<String> record : records)
         {
             Record accountantRecord = new Accountant();
-            for(String columnValue : record)
-            {
+
                 ((Accountant)accountantRecord).setName(record.get(0));
                 ((Accountant)accountantRecord).setContact(Long.parseLong(record.get(1)));
                 ((Accountant)accountantRecord).setImage_url(record.get(2));
                 ((Accountant)accountantRecord).setAccountantid(Long.parseLong(record.get(3)));
 
-            }
+
             accountantRecords.add(accountantRecord);
         }
         return accountantRecords;

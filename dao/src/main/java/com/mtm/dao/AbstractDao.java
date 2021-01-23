@@ -290,19 +290,19 @@ public abstract class AbstractDao implements  Dao {
                         updateCoulmnValueList.add(column.getName()+" = '"+columnValue+"'");
                     break;
                 case INT:
-                    if((int)(columnValue) > 0)
+                    if((int)(columnValue) != 0)
                         updateCoulmnValueList.add(column.getName()+" = "+columnValue+"");
                     break;
                 case LONG:
-                    if((long)(columnValue) > 0)
+                    if((long)(columnValue) != 0)
                         updateCoulmnValueList.add(column.getName()+" = "+columnValue+"");
                     break;
                 case DOUBLE:
-                    if((double)(columnValue) > 0d)
+                    if((double)(columnValue) != 0d)
                         updateCoulmnValueList.add(column.getName()+" = "+columnValue+"");
                     break;
                 case FLOAT:
-                    if((float)(columnValue) > 0)
+                    if((float)(columnValue) != 0)
                         updateCoulmnValueList.add(column.getName()+" = "+columnValue+"");
                     break;
                 default:

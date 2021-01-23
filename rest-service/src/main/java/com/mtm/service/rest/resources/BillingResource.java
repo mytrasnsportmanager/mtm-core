@@ -9,6 +9,7 @@ import com.mtm.dao.*;
 import com.mtm.notification.FCMNotificationSender;
 import com.mtm.pdfgenerator.PDFGeneratorUtil;
 import org.apache.commons.io.FileUtils;
+import org.joda.time.DateTime;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -99,6 +100,38 @@ public class BillingResource extends AbstractRestResource {
         }
 
         return accountSummary;
+
+    }
+
+    @GET
+    @Path("/billing/periodsummary/{vehicleid}/{consignerid}/{billingperiod}")
+    public AccountSummary getAccountSummaryForPeriod(@PathParam("vehicleid") Optional<String> vehicleIdArg, @PathParam("consignerid") Optional<String> consignerIdArg, @PathParam("billingperiod") Optional<String> billingPeriodArg)
+    {
+        long consignerId = Long.parseLong(consignerIdArg.get());
+        long vehicleId = Long.parseLong(vehicleIdArg.get());
+        String billingPeriodDateStr = "1"+billingPeriodArg.get();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dMMMyyyy");
+        try {
+            Date date = simpleDateFormat.parse(billingPeriodDateStr);
+            DateTime dateTime = new DateTime(date);
+            int billingPeriodYear = dateTime.getYear();
+            int billingPeriodMonth = dateTime.getMonthOfYear();
+            return dao.getPastSummary(consignerId, vehicleId, billingPeriodYear, billingPeriodMonth);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+
+
+    }
+
+    @GET
+    @Path("/billing/billingperiods/{vehicleid}/{consignerid}")
+    public List<String> getAvailableBillingPeriods(@PathParam("vehicleid") Optional<String> vehicleIdArg, @PathParam("consignerid") Optional<String> consignerIdArg)
+    {
+        long consignerId = Long.parseLong(consignerIdArg.get());
+        long vehicleId = Long.parseLong(vehicleIdArg.get());
+        return dao.getPreviousBillingPeriods(consignerId,vehicleId);
 
     }
 
@@ -384,6 +417,67 @@ public class BillingResource extends AbstractRestResource {
         }
 
         return null;
+    }
+
+    @GET
+    @Path("/infotainment/{vehicleid}")
+    public Object getInfotainment(@PathParam("vehicleid") Optional<String> vehicleIdArg) {
+
+        long vehicleId = Long.parseLong(vehicleIdArg.get());
+        VehicleInfotainment vehicleInfotainment = null;
+        try {
+            VehicleDao vehicleDao = new VehicleDao();
+            OwnerDao ownerDao = new OwnerDao();
+
+            Vehicle vehicle = (Vehicle)vehicleDao.getRecords(" vehicleid = "+vehicleId).get(0);
+            Owner owner = (Owner)ownerDao.getRecords(" ownerid = "+vehicle.getOwnerid()).get(0) ;
+
+
+            double current_profit_standing = dao.getCurrentProfitStanding(vehicleId);
+            vehicleInfotainment = new VehicleInfotainment();
+            vehicleInfotainment.setCurrent_profit_standing(current_profit_standing);
+            vehicleInfotainment.setVehicleid(vehicleId);
+            vehicleInfotainment.setOwnerName(owner.getName());
+
+            String averageMonthlyEarnedReceivedQuery ="select avg(earned_total), avg(received_total) from (\n" +
+                    "\n" +
+                    "select period_year, period_month, sum(earned_total) as earned_total, sum(received_total) as received_total from (\n" +
+                    " select  year(eventtime) as period_year, month(eventtime) as period_month, sum(case when erid like 'E%' then amount else 0 end) as earned_total , sum(case when erid like 'T%' then amount else 0 end) received_total from earned_received_hist where\n" +
+                    " billingid in (select billingid from monthly_billing where  vehicleid = "+vehicleId+" )\n" +
+                    " group by year(eventtime), month(eventtime)\n" +
+                    " union all   select year(starttime)  as period_year, month(starttime) as period_month, sum((a.work_done*b.rate)) as earned_total, 0 as received_total from trip a inner join route b on a.routeid = b.routeid where (a.billingid is null or a.billingid =0 ) and  a.vehicleid = "+vehicleId+" group by  year(starttime), month(starttime)\n" +
+                    "union all\n" +
+                    "select year(txn_date) as period_year, month(txn_date) as period_month ,0 as earned_total,  sum(amount) as received_total from txn  where  (billingid is null or billingid =0 ) and  vehicleid = "+vehicleId+" and upper(txn_type) in (1,2,3,4,5,6,7,8,9)  group by  year(txn_date), month(txn_date)\n" +
+                    "     )inn2 group by period_year, period_month) inn";
+            List<List<String>> averageMonthlyEarnedReceivedRecords = dao.executeQuery(averageMonthlyEarnedReceivedQuery);
+            if(averageMonthlyEarnedReceivedRecords.size() > 0  )
+            {
+                double averageMonthlyEarned = 0d;
+                double averageMonthlyReceived = 0d;
+
+                if(averageMonthlyEarnedReceivedRecords.get(0).get(0) !=null)
+                    averageMonthlyEarned = Double.parseDouble(averageMonthlyEarnedReceivedRecords.get(0).get(0));
+                if(averageMonthlyEarnedReceivedRecords.get(0).get(1) !=null)
+                    averageMonthlyReceived = Double.parseDouble(averageMonthlyEarnedReceivedRecords.get(0).get(1));
+
+                vehicleInfotainment.setAverageMonthlyExpense(averageMonthlyReceived);
+                vehicleInfotainment.setAverageMonthlyRevenue(averageMonthlyEarned);
+                vehicleInfotainment.setAverageMonthlyIncome(averageMonthlyEarned - averageMonthlyReceived);
+
+            }
+
+            double ownerExpenseAmount = dao.getOwnerTotalExpense(vehicleId);
+            vehicleInfotainment.setOwnerTotalExpense(ownerExpenseAmount);
+
+
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+
+        return vehicleInfotainment;
     }
 
 

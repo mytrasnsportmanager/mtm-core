@@ -135,6 +135,7 @@ public class Vehicle extends Record {
 
     private double kms_without_trip;
 
+
     @JsonProperty
     public String getKms_without_trip_remarks() {
         return kms_without_trip_remarks;

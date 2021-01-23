@@ -8,7 +8,7 @@ import java.util.ArrayList;
 /**
  * Created by Admin on 2/24/2019.
  */
-public class Owner extends Record{
+public class Owner extends User{
 
     @JsonProperty
     public long getOwnerid() {

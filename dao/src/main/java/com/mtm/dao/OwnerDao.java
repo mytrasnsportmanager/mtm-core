@@ -22,7 +22,25 @@ public class OwnerDao extends AbstractDao {
     }
 
     public List<Record> getConvertedRecords(String whereClause) {
-        return null;
+
+        List<List<String>> records = get(whereClause);
+        List<Record> ownerRecords = new ArrayList<>();
+        Owner owner = new Owner();
+        for(List<String> record: records)
+        {
+            owner.setOwnerid(Long.parseLong(record.get(0)));
+            owner.setName(record.get(1));
+            owner.setAddress(record.get(2));
+            owner.setContact(Long.parseLong(record.get(3)));
+            owner.setImage_url(record.get(4));
+            ownerRecords.add(owner);
+
+        }
+
+
+
+
+        return ownerRecords;
     }
 
     public List<OwnerConsigner> getConsigners(String ownerId)

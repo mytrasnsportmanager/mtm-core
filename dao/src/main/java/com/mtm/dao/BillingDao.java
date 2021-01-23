@@ -1,6 +1,7 @@
 package com.mtm.dao;
 
 import com.google.api.client.util.Joiner;
+import com.mtm.beans.AccountSummary;
 import com.mtm.beans.AmountAndDate;
 import com.mtm.beans.TxnType;
 import com.mtm.beans.dto.CreditDebit;
@@ -9,6 +10,8 @@ import com.mtm.beans.dto.Vehicle;
 import com.mtm.beans.dto.VehicleWork;
 import com.mtm.dao.connection.DatabaseAccessDao;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
@@ -206,11 +209,96 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
 
     }
 
+
+    public AccountSummary getPastSummary(long consignerId, long vehicleId, int year, int month)
+    {
+
+        String getTotalQuery = "select amount from monthly_billing where consignerid = "+consignerId+" and vehicleid = "+vehicleId+" and year = "+year+" and month = "+month;
+        List<List<String>> getTotalQueryRecords = dao.executeQuery(getTotalQuery);
+        double totalReceivableAmount = 0d;
+        double currentUnbilledReceived = 0d;
+        double currentUnbilledEarned = 0d;
+        double previousBilledTotal = 0d;
+        if(getTotalQueryRecords.size() > 0) {
+            totalReceivableAmount =  Double.parseDouble(getTotalQueryRecords.get(0).get(0));
+        }
+
+        String earnedAndReceivedQuery = "select sum(case when erid like 'E%' then amount else 0 end) , sum(case when erid like 'T%' then amount else 0 end) from earned_received_hist where billingid in (select billingid from monthly_billing where consignerid = "+consignerId+" and vehicleid = "+vehicleId+" and year = "+year+" and month = "+month+")";
+        List<List<String>> getEarnedAndReceivedAmountRecords = dao.executeQuery(earnedAndReceivedQuery);
+        if(getEarnedAndReceivedAmountRecords.size() > 0)
+        {
+            if (getEarnedAndReceivedAmountRecords.get(0).get(0)!=null)
+            currentUnbilledEarned =  Double.parseDouble(getEarnedAndReceivedAmountRecords.get(0).get(0));
+            if (getEarnedAndReceivedAmountRecords.get(0).get(1)!=null)
+            currentUnbilledReceived =  Double.parseDouble(getEarnedAndReceivedAmountRecords.get(0).get(1));
+        }
+        List<List<String>> records = dao.executeQuery("select name from owner where ownerid = ( select ownerid from vehicle where vehicleid = "+vehicleId+")");
+
+        String ownerName = records.get(0).get(0);
+        records = dao.executeQuery("select name from consigner where consignerid = "+consignerId+"");
+        String consignerName = records.get(0).get(0);
+        AccountSummary accountSummary = new AccountSummary();
+        accountSummary.setConsignerId(consignerId);
+        accountSummary.setOwnerName(ownerName);
+        accountSummary.setConsignerName(consignerName);
+        accountSummary.setVehicleId(vehicleId);
+        accountSummary.setTotalUnbilledEarned(currentUnbilledEarned);
+        accountSummary.setTotalUnbilledReceived(currentUnbilledReceived);
+        accountSummary.setTotalReceivables(totalReceivableAmount);
+
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d/M/yyyy");
+        String dateStr = "1/"+month+"/"+year;
+        //DateTimeZone timeUTC = DateTimeZone.UTC;
+        DateTime firstDateOfPrvidedBillingPeriod = null;
+        try {
+             firstDateOfPrvidedBillingPeriod = new DateTime(simpleDateFormat.parse(dateStr));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        DateTime firstDateOfPreviousBillingPeriod = firstDateOfPrvidedBillingPeriod.minusMonths(1);
+
+        int previousBillYear = firstDateOfPreviousBillingPeriod.getYear() ;
+        int previousBillMonth = firstDateOfPreviousBillingPeriod.getMonthOfYear();
+
+        String previousBilledTotalQuery  = "select amount from monthly_billing where consignerid = "+consignerId+" and vehicleid = "+vehicleId+" and year = "+previousBillYear+" and month = "+previousBillMonth;
+        List<List<String>> getPreviousTotalRecords = dao.executeQuery(previousBilledTotalQuery);
+        if(getPreviousTotalRecords.size() > 0)
+        {
+            if(getPreviousTotalRecords.get(0).get(0) != null)
+            previousBilledTotal = Double.parseDouble(getPreviousTotalRecords.get(0).get(0));
+        }
+        accountSummary.setTotalBilled(previousBilledTotal);
+        return accountSummary;
+
+
+    }
+
+    public List<String> getPreviousBillingPeriods(long consignerid, long vehicleid)
+    {
+        String previousBillQuery = "select distinct year, month from monthly_billing where consignerid  = "+consignerid+" and vehicleid = "+vehicleid;
+        List<List<String>> records = dao.executeQuery(previousBillQuery);
+        List<String> billingPeriods = new ArrayList<>();
+        SimpleDateFormat inputDateFormat = new SimpleDateFormat("d/M/yyyy");
+        SimpleDateFormat outputDateFormat = new SimpleDateFormat("MMM yyyy");
+        for(List<String> record : records )
+        {
+            String billingDateStr = "1/"+record.get(1)+"/"+record.get(0);
+            try {
+                Date inputDate = inputDateFormat.parse(billingDateStr);
+                billingPeriods.add(outputDateFormat.format(inputDate));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
+        return billingPeriods;
+    }
+
+
     public AmountAndDate getPreviousBilledAmount(long consignerid, long vehicleid)
     {
         AmountAndDate amountAndDate = new AmountAndDate();
         double previousTotalBilled = 0;
-        String previousTotalBilledQuery = "select a.amount, a.billingdate from monthly_billing a where a.billingdate = (select max(billingdate) from monthly_billing where consignerid="+consignerid+" and vehicleid ="+vehicleid+")";
+        String previousTotalBilledQuery = "select a.amount, a.billingdate from monthly_billing a where a.consignerid="+consignerid+" and a.vehicleid="+vehicleid+" and a.billingdate = (select max(billingdate) from monthly_billing where consignerid="+consignerid+" and vehicleid ="+vehicleid+")";
         List<List<String>> results = dao.executeQuery(previousTotalBilledQuery);
         if(results==null || results.size()==0 || results.get(0)==null || results.get(0).get(0)==null) {
             amountAndDate.setAmount(0.0d);
@@ -295,8 +383,11 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
         {
             if(Integer.parseInt(records.get(0).get(0)) > 0)
             { System.out.println(" Billing has already been done for "+consignerid+" "+vehicleid+" "+year+" "+month);
-                return;}
+
+             return;
+                }
         }
+        double totalReceivableAmount = getTotalReceivableAmount(consignerid,vehicleid);
 
         String monthlyBillQuery = "insert into  monthly_billing (vehicleid, consignerid, billingdate, year, month) values("+vehicleid+","+consignerid+",'"+billDate+"',"+year+","+month+")";
 
@@ -310,11 +401,15 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
             Statement statement = connection.createStatement();
 
             ownerid = ((Vehicle)(vehicleDao.getRecords(" vehicleid = "+vehicleid).get(0))).getOwnerid();
+
             statement.executeUpdate(monthlyBillQuery);
             String query = "select LAST_INSERT_ID()";
-            ResultSet rs = statement.executeQuery(query);
+
+           ResultSet rs = statement.executeQuery(query);
             rs.next();
+
             billingid = rs.getLong(1);
+           // billingid = 31;
             String tripHistoryInsertQuery ="insert into  trip_detailed_hist \n" +
                     "select b.vehicleid AS vehicleid,b.routeid AS routeid,b.driverid AS driverid,c.consignerid AS consignerid,a.source AS source,a.destination AS destination,\n" +
                     "a.rate AS rate,a.rate_type AS rate_type,(case when (a.rate_type = 'per\\n\\n\\ntonne') then concat(b.work_done,' tonnes, ',a.rate,' per tonne') \n" +
@@ -326,14 +421,15 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
                     "vehicledriver d on((e.driverid = d.driverid)))  where b.vehicleid = " + vehicleid +" and a.consignerid = "+ consignerid;
 
             String earnedReceivedHistoryInsertQuery = "insert into earned_received_hist \n" +
-                    "select v.registration_num AS registration_num,(t.work_done * r.rate) AS amount,t.starttime AS eventtime,'earned' \n" +
+                    "select v.registration_num AS registration_num,(t.work_done * r.rate) AS amount,t.starttime AS eventtime,concat('earned - ',t.work_done,' x ',r.rate,\n" +
+                    "' ',r.rate_type,', ',substring_index(r.source,',',1),' to ',substring_index(r.destination,',',1))  \n" +
                     "AS type,t.challanid AS referenceid,0 AS work,concat('E',t.tripid) AS erid,t.vehicleid AS vehicleid,r.consignerid AS consignerid, "+billingid+" as billingid,'N' from \n" +
                     "((trip t join route r on((t.routeid = r.routeid))) join vehicle v on((t.vehicleid = v.vehicleid))) where t.vehicleid = "+vehicleid+" and r.consignerid = "+consignerid+" union all select v2.registration_num AS \n" +
-                    "registration_num,tx.amount AS amount,tx.txn_date AS txn_Date,'received' AS type,tx.txnid AS txnid,tx.txn_type AS txn_type,concat('T',tx.txnid)\n" +
+                    "registration_num,tx.amount AS amount,tx.txn_date AS txn_Date,concat('received - ',tx.remarks) AS type,tx.txnid AS txnid,tx.txn_type AS txn_type,concat('T',tx.txnid)\n" +
                     " AS erid,tx.vehicleid AS vehicleid,tx.consignerid AS consignerid, "+billingid+" as billingid, 'N' from (txn tx join vehicle v2 on((tx.vehicleid = v2.vehicleid)))\n" +
                     " where (tx.is_owner_funded is null or tx.is_owner_funded='N') and tx.vehicleid = "+vehicleid + " and tx.consignerid = "+consignerid;
 
-            double totalReceivableAmount = getTotalReceivableAmount(consignerid,vehicleid);
+
             String updateBillDetails = "update monthly_billing set amount = "+totalReceivableAmount +" where billingid = "+billingid;
             String updateTripsBillingIdQuery = "delete from trip  where vehicleid ="+vehicleid+" and routeid in (select routeid from route where consignerid = "+consignerid+" and ownerid = "+ownerid+") ";
             String updateTxnsBillingIdQuery = "delete from txn where (is_owner_funded is null or is_owner_funded='N') and vehicleid ="+vehicleid+" and consignerid ="+consignerid;
@@ -457,8 +553,46 @@ private DecimalFormat decimalFormat = new DecimalFormat("#,###,##0.00");
         return vehicleWork;
     }
 
+    public double getCurrentProfitStanding(long vehicleid)
+    {
+        String query = "select sum(amount) from \n" +
+                "(\n" +
+                "select sum((a.work_done*b.rate)) as amount, min('trip') from trip a inner join route b on a.routeid = b.routeid where (a.billingid is null or a.billingid =0 ) and  a.vehicleid = "+vehicleid+" group by vehicleid\n" +
+                "union all\n" +
+                "select (0 - sum(amount)) as amount, min('txn') from txn  where  (billingid is null or billingid =0 ) and  vehicleid="+vehicleid+" and upper(txn_type) in (1,2,3,4,5,6,7,8,9)  group by vehicleid\n" +
+                "union all\n" +
+                "select sum(amount) as amount , min('earned_hist') from earned_received_hist where vehicleid = "+vehicleid+" and erid like 'E%'\n" +
+                "group by vehicleid\n" +
+                "union all\n" +
+                "select  (0 - sum(amount)) as amount , min('received_hist') from earned_received_hist where vehicleid = "+vehicleid+" and erid like 'T%'\n" +
+                "group by vehicleid ) inn" ;
+        List<List<String>> records = dao.executeQuery(query);
+        if(records.size()==0)
+            return 0d;
+        return Double.parseDouble(records.get(0).get(0));
+
+    }
+
+    public double getOwnerTotalExpense (long vehicleId)
+    {
+        String ownerExpenseQuery = "select sum(amount) from txn where is_owner_funded is not null and upper(is_owner_funded) = 'Y' and vehicleid = "+vehicleId;
+        List<List<String>> ownerExpenseRecords = dao.executeQuery(ownerExpenseQuery);
+        if(ownerExpenseRecords.size() > 0 && ownerExpenseRecords.get(0).get(0)!=null)
+        {
+            return Double.parseDouble(ownerExpenseRecords.get(0).get(0));
+        }
+        return 0d;
+    }
 
     public List<Record> getConvertedRecords(String whereClause) {
         return null;
     }
+
+
+    public static void main (String[] args)
+    {
+        BillingDao billingDao = new BillingDao();
+        //billingDao.ge(18, 7, 2020, 7);
+    }
+
 }

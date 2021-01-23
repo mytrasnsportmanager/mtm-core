@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * Created by Admin on 3/4/2019.
  */
 
-public class Consigner extends Record{
+public class Consigner extends User{
 
     @JsonProperty
     public long getConsignerid() {

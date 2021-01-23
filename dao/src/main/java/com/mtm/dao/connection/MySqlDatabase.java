@@ -12,8 +12,9 @@ public class MySqlDatabase implements Database {
     public Connection getConnection() throws Exception {
         Class.forName("com.mysql.jdbc.Driver");
         Connection conn = null;
-         conn = DriverManager.getConnection("jdbc:mysql://transportsarthi.in:3306/mtm","mtmwebuser", "mtm@123");
-      // conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mtm","mtmwebuser", "mtm@123");
+      //
+       //   conn = DriverManager.getConnection("jdbc:mysql://transportsarthi.in:3306/mtm","mtmwebuser", "mtm@123");
+        conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mtm","mtmwebuser", "mtm@123");
         return conn;
     }
 }
